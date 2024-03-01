@@ -65,9 +65,10 @@ func (Go) IntegrationTest() error {
 
 // Runs golangci-lint
 func (Go) Lint() error {
+	os.Setenv("CGO_ENABLED", "1")
 	oldArgs := make([]string, len(os.Args))
 	copy(oldArgs, os.Args)
-	os.Args = []string{"golangci-lint", "run", "./..."}
+	os.Args = []string{"golangci-lint", "run", "--build-tags=integration", "./..."}
 	defer func() { os.Args = oldArgs }()
 	return commands.NewExecutor(commands.BuildInfo{}).Execute()
 }

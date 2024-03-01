@@ -1,14 +1,16 @@
 package api
 
 import (
-	"fmt"
+	"encoding/json"
+	"log/slog"
 	"net/http"
 
+	"github.com/gevulotnetwork/devnet-explorer/model"
 	"github.com/julienschmidt/httprouter"
 )
 
 type Store interface {
-	Hello() string
+	Stats() (model.Stats, error)
 }
 
 type API struct {
@@ -30,9 +32,19 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) bind() {
-	a.r.GET("/", a.helloWorld)
+	a.r.GET("/api/v1/stat", a.stats)
 }
 
-func (a *API) helloWorld(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, a.s.Hello())
+func (a *API) stats(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	stats, err := a.s.Stats()
+	if err != nil {
+		slog.Error("failed to get stats", slog.Any("error", err))
+		http.Error(w, "failed to get stats", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		slog.Error("failed encode stats", slog.Any("error", err))
+		return
+	}
 }

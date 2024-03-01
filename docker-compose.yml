@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  db:
+    image: 'docker.io/library/postgres:16-alpine'
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=gevulot
+      - POSTGRES_PASSWORD=gevulot
+      - POSTGRES_DB=gevulot
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gevulot -d gevulot"]
+      interval: 1s
+      timeout: 2s
+      retries: 30

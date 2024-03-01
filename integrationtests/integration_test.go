@@ -3,12 +3,8 @@
 package integrationtests_test
 
 import (
-	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"os"
-	"os/exec"
 	"testing"
 	"time"
 
@@ -20,55 +16,27 @@ const (
 	coverDir = "../target/test-artifacts/coverage/bin/int"
 )
 
-func TestMain(m *testing.M) {
-	if err := buildApp(); err != nil {
-		log.Fatal("Failed to build test binary", err)
-	}
-
-	code := m.Run()
-	if code != 0 {
-		os.Exit(1)
-	}
-}
-
 func TestIntegration(t *testing.T) {
+	buildApp(t)
+	startDB(t)
+	initTables(t)
 	runApp(t)
 	time.Sleep(1 * time.Second)
 
-	resp, err := http.Get("http://127.0.0.1:8383")
+	for _, test := range []func(*testing.T){
+		testEmptyStats,
+	} {
+		t.Run(testName(test), test)
+	}
+}
+
+func testEmptyStats(t *testing.T) {
+	resp, err := http.Get("http://127.0.0.1:8383/api/v1/stat")
 	require.NoError(t, err)
 
 	data, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	require.Equal(t, "Hello, World!", string(data))
-}
-
-func buildApp() error {
-	args := []string{"build", "-o", binPath, "-race", "-cover", "-covermode", "atomic", "../cmd/devnet-explorer"}
-	env := []string{"CGO_ENABLED=1"}
-
-	c := exec.Command("go", args...) //nolint:gosec
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	c.Env = append(c.Environ(), env...)
-	fmt.Println("Building app:", c.String())
-	return c.Run()
-}
-
-func runApp(t *testing.T, runArgs ...string) {
-	err := os.MkdirAll(coverDir, 0o755)
-	require.NoError(t, err)
-
-	c := exec.Command(binPath, runArgs...) //nolint:gosec
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	c.Env = append(c.Environ(), "GOCOVERDIR="+coverDir)
-
-	t.Log("Running app:", c.String())
-	require.NoError(t, c.Start())
-	t.Cleanup(func() {
-		require.NoError(t, c.Process.Signal(os.Interrupt))
-		require.NoError(t, c.Wait())
-	})
+	const expectedResp = `{"RegisteredUsers":0,"Programs":0,"ProofsGenerated":0,"ProofsVerified":0}`
+	require.JSONEq(t, expectedResp, string(data))
 }
