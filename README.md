@@ -5,7 +5,7 @@ Gevulot Devnet Explorer
 
 ### Requirements
 
-- [Go](https://go.dev/) 1.22 or newer
+- [Go](https://go.dev/) >= 1.22
 - [Mage](https://magefile.org/) 
 - Docker/Podman
 
