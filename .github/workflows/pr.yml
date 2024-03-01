@@ -1,0 +1,26 @@
+name: PR
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: elisa-actions/setup-go-and-mage@v1
+
+      - name: Run unit tests
+        run: mage go:unitTest
+
+      - name: Run integration tests
+        run: mage go:integrationTest
+
+      - name: Run linter
+        run: mage go:lint
+
+      - name: Build binary
+        run: mage go:build
