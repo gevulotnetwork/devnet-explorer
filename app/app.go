@@ -4,6 +4,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,12 +15,18 @@ import (
 )
 
 // Run starts the application and listens for OS signals to gracefully shutdown.
-func Run() error {
-	conf := ParseConfig()
+func Run(args ...string) error {
+	conf := ParseConfig(args...)
+
+	s, err := store.New(conf.DSN)
+	if err != nil {
+		return fmt.Errorf("failed to create store: %w", err)
+	}
+
 	sigInt := make(chan os.Signal, 1)
 	srv := &http.Server{
 		Addr:    conf.ServerListenAddr,
-		Handler: api.New(store.New()),
+		Handler: api.New(s),
 	}
 
 	r := NewRunner()
@@ -53,13 +60,21 @@ func Run() error {
 
 type Config struct {
 	ServerListenAddr string
+	DSN              string
 }
 
-func ParseConfig() Config {
+func ParseConfig(args ...string) Config {
 	addr := os.Getenv("SERVER_LISTEN_ADDR")
 	if addr == "" {
 		addr = "127.0.0.1:8383"
 	}
+	dsn := os.Getenv("DSN")
+	if dsn == "" {
+		dsn = "postgres://gevulot:gevulot@localhost:5432/gevulot"
+	}
 
-	return Config{ServerListenAddr: addr}
+	return Config{
+		ServerListenAddr: addr,
+		DSN:              dsn,
+	}
 }
