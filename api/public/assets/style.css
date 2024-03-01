@@ -1,0 +1,409 @@
+@font-face {
+  font-family: "SpaceGrotesk";
+  src: url("./SpaceGrotesk-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SpaceGrotesk";
+  src: url("./SpaceGrotesk-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SpaceGrotesk";
+  src: url("./SpaceGrotesk-Bold.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SpaceMono";
+  src: url("./SpaceMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow-x: hidden;
+  margin: 0;
+  background: #000;
+  font-family: "SpaceGrotesk", sans-serif;
+  color: #9973df;
+}
+
+p {
+  color: #d0b7ff;
+}
+
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  z-index: 2;
+  padding: 16px;
+  gap: 16px;
+}
+
+nav a {
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+nav a:hover {
+  opacity: 1;
+}
+
+nav div {
+  display: flex;
+  gap: 16px;
+}
+
+.container {
+  position: relative;
+  display: flex;
+  padding: 0 2rem;
+  flex-direction: column;
+  gap: 3rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0 auto;
+  max-width: 680px;
+  z-index: 1;
+}
+
+.article {
+  padding: 0 2rem 4rem;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: none;
+
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(12, 8, 21, 1) 14%);
+}
+
+header,
+main {
+  font-size: 0.8rem;
+}
+
+.hero {
+  height: 65vh;
+  max-width: 600px;
+  padding: 0 2rem;
+  width: 90%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero h1 {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+main h1,
+main h2,
+main h3,
+main h4,
+main h5 {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 2rem;
+  padding-top: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-family: "SpaceMono", monospace;
+}
+
+main .intro-text {
+  margin-top: 0;
+}
+
+main img {
+  margin: 2rem 0;
+  display: block;
+}
+
+.logo-container {
+  margin: 0 auto;
+  width: 70%;
+  max-width: 240px;
+  position: relative;
+}
+
+.logo-container svg {
+  position: absolute;
+}
+
+.logo-container svg:nth-child(1) {
+  mix-blend-mode: screen;
+  margin: -1px 0 0 1px;
+  filter: blur(3px);
+  z-index: 3;
+}
+
+.logo-container svg:nth-child(2) {
+  margin: 0;
+  z-index: 1;
+}
+
+.logo-container svg:nth-child(3) {
+  mix-blend-mode: color-dodge;
+  margin: 2px 0 0 -2px;
+  filter: blur(3px);
+  z-index: 3;
+}
+
+.intro-text {
+  font-size: 1.2rem;
+  line-height: 1.5;
+  letter-spacing: 0.03rem;
+  padding: 0 1rem;
+  text-wrap: balance;
+  margin-top: 5rem;
+  margin-bottom: 2.5rem;
+  color: #a87aff;
+  font-family: "SpaceGrotesk", sans-serif;
+}
+
+.intro-glass {
+  margin-top: 3rem;
+}
+
+.intro-glass p {
+  font-size: 0.9rem;
+}
+
+button {
+  background-color: #be9ff7;
+  color: #000;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.5rem;
+  letter-spacing: 0.04rem;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: 500;
+  border: 2px solid rgba(255, 255, 255, 0);
+}
+
+button a {
+  text-decoration: none;
+}
+
+button:hover {
+  background-color: #9973df;
+  cursor: pointer;
+  color: #fff;
+  animation: outline 0.05s ease-in-out infinite;
+}
+
+canvas {
+  display: block;
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+main p,
+main ul,
+main ol {
+  font-size: 1rem;
+  letter-spacing: 0;
+  color: #ab9ec5;
+  line-height: 1.48;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+main ul,
+main ol {
+  margin: 0.5rem 0;
+}
+
+main li {
+  margin-bottom: 0.85rem;
+}
+
+main p a,
+main ul a,
+main ol a {
+  color: #9a68ff;
+
+  transition: color 0.3s;
+}
+
+main p a:hover,
+main ul a:hover,
+main ol a:hover {
+  color: #fff;
+}
+
+@keyframes outline {
+  0% {
+    border-color: rgba(255, 255, 255, 0);
+  }
+
+  100% {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+.animate.animating {
+  background-color: rgb(173, 134, 250);
+  color: black;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.animate.animating-done {
+  background-color: rgba(188, 172, 219, 0);
+  display: inline-block;
+  color: #9973df;
+}
+
+.animate {
+  font-family: "SpaceMono", monospace;
+  /* display: flex;
+  flex-wrap: wrap; */
+}
+
+.animate .word {
+  white-space: nowrap;
+}
+
+.animate .animating,
+.animate .animating-done {
+  display: inline-block;
+  width: 1ch;
+}
+
+.animated-header {
+  font-size: 1.3rem;
+}
+
+.devnet {
+  margin-top: 6rem;
+  border: 1px solid #be9ff7;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+
+  a {
+    flex-shrink: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  button {
+    background: transparent;
+    font-size: 0.8rem;
+    color: #be9ff7;
+
+    border-top: 1px solid #be9ff7;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    height: 100%;
+    flex-shrink: 0;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      animation: none;
+    }
+  }
+
+  span {
+    padding: 0.5rem 0.5rem;
+    font-size: 0.85rem;
+    text-align: center;
+    width: 100%;
+    color: #d1b8ff8a;
+  }
+}
+
+footer {
+  padding: 4vh 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  text-align: center;
+
+  h3 {
+    text-transform: uppercase;
+    font-weight: normal;
+    letter-spacing: 0.05rem;
+    font-size: 1rem;
+  }
+
+  iframe {
+    margin: 0 auto;
+  }
+}
+
+@media only screen and (min-width: 600px) {
+
+  main p,
+  main ul,
+  main ol {
+    color: #bcacdb;
+    font-size: 18px;
+    line-height: 1.52;
+  }
+
+  header,
+  main {
+    max-width: 44rem;
+    font-size: 1rem;
+  }
+
+  .intro-glass p {
+    font-size: 1.2rem;
+    max-width: 37rem;
+  }
+
+  .animated-header {
+    font-size: 1.7rem;
+  }
+
+  .devnet {
+    flex-direction: row;
+
+    span {
+      text-align: left;
+      padding: 0.5rem 1rem;
+    }
+
+    a {
+      width: auto;
+    }
+
+    button {
+      border-top: none;
+      border-left: 1px solid #be9ff7;
+    }
+  }
+}

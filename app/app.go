@@ -9,24 +9,30 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 
 	"github.com/gevulotnetwork/devnet-explorer/api"
-	"github.com/gevulotnetwork/devnet-explorer/store"
+	"github.com/gevulotnetwork/devnet-explorer/store/mock"
+	"github.com/gevulotnetwork/devnet-explorer/store/pg"
 )
 
 // Run starts the application and listens for OS signals to gracefully shutdown.
 func Run(args ...string) error {
 	conf := ParseConfig(args...)
-
-	s, err := store.New(conf.DSN)
+	s, err := createStore(conf)
 	if err != nil {
 		return fmt.Errorf("failed to create store: %w", err)
+	}
+
+	a, err := api.New(s)
+	if err != nil {
+		return fmt.Errorf("failed to create api: %w", err)
 	}
 
 	sigInt := make(chan os.Signal, 1)
 	srv := &http.Server{
 		Addr:    conf.ServerListenAddr,
-		Handler: api.New(s),
+		Handler: a,
 	}
 
 	r := NewRunner()
@@ -58,9 +64,17 @@ func Run(args ...string) error {
 	return r.Wait()
 }
 
+func createStore(c Config) (api.Store, error) {
+	if c.MockStore {
+		return mock.New(), nil
+	}
+	return pg.New(c.DSN)
+}
+
 type Config struct {
 	ServerListenAddr string
 	DSN              string
+	MockStore        bool
 }
 
 func ParseConfig(args ...string) Config {
@@ -72,9 +86,11 @@ func ParseConfig(args ...string) Config {
 	if dsn == "" {
 		dsn = "postgres://gevulot:gevulot@localhost:5432/gevulot"
 	}
+	mockStore, _ := strconv.ParseBool(os.Getenv("MOCK_STORE"))
 
 	return Config{
 		ServerListenAddr: addr,
 		DSN:              dsn,
+		MockStore:        mockStore,
 	}
 }
