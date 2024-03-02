@@ -42,7 +42,7 @@ func (Go) Run() error {
 // Runs devnet-explorer binary
 func (Go) RunWithMockDB() error {
 	mg.SerialDeps(Go.Build)
-	return sh.RunWith(map[string]string{"MOCK_STOTE": "true"}, buildOutput)
+	return sh.RunWith(map[string]string{"MOCK_STORE": "true"}, buildOutput)
 }
 
 // Runs unit tests
