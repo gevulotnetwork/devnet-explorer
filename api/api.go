@@ -36,7 +36,7 @@ func New(s Store) (*API, error) {
 	}
 
 	a.r.NotFound = http.FileServer(http.FS(publicFS))
-	a.r.GET("/api/v1/stat", a.stats)
+	a.r.GET("/api/v1/stats", a.stats)
 
 	return a, nil
 }

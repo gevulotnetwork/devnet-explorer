@@ -34,7 +34,8 @@ func (c *Cache) Stats() (model.Stats, error) {
 	return stats, nil
 }
 
-func (c *Cache) Run() {
+func (c *Cache) Run() error {
+	slog.Info("starting cache", slog.String("refresh_interval", c.interval.String()))
 	t := time.NewTicker(c.interval)
 	defer t.Stop()
 
@@ -43,7 +44,7 @@ func (c *Cache) Run() {
 		case <-t.C:
 			c.refreshStats()
 		case <-c.stop:
-			return
+			return nil
 		}
 	}
 }
@@ -57,6 +58,8 @@ func (c *Cache) refreshStats() {
 	c.stats.Store(stats)
 }
 
-func (c *Cache) Stop() {
+func (c *Cache) Stop() error {
+	slog.Info("stopping cache")
 	close(c.stop)
+	return nil
 }
