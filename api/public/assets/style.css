@@ -51,7 +51,7 @@ main {
 .hero {
   height: 65vh;
   max-width: 600px;
-  padding: 0 2rem;
+  padding: 8rem 2rem;
   width: 90%;
   margin: 0 auto;
   display: flex;
@@ -84,9 +84,9 @@ main h5 {
 }
 
 .logo-container {
-  margin: 0 auto;
+  margin: 10px;
   width: 70%;
-  max-width: 240px;
+  max-width: 7rem;
   position: relative;
 }
 
@@ -152,7 +152,16 @@ canvas {
 }
 
 .animated-header {
-  font-size: 1.3rem;
+  font-size: 4rem;
+}
+
+.devnet {
+  text-align: center;
+  display: flex;
+}
+
+.number-block {
+  margin: 0rem 4rem;
 }
 
 /* Roll CSS */
@@ -162,7 +171,7 @@ canvas {
   margin-right: 0.2em;
   width: 0;
   overflow: hidden;
-  height: 48px;
+  height: 8rem;
   transition: width 1.8s ease;
 }
 
@@ -172,17 +181,16 @@ canvas {
   flex-direction: column;
   opacity: 0;
   flex-shrink: 2;
-  flex-basis: 48px;
-  width: 1px;
+  flex-basis: 8rem;
   position: absolute;
   right: 0;
-  line-height: 48px;
+  line-height: 8rem;
   transition: all 2s ease;
+  font-size: 8rem;
 }
 
 .rolling-number>span.visible {
   position: static;
-  width: 30px;
   opacity: 1;
   flex-shrink: 1;
 }

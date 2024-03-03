@@ -8,9 +8,7 @@ function scrollNumber(counter, digits) {
     tick.style.transform = `translateY(-${100 * parseInt(digits[i])}%)`;
   })
 
-  setTimeout(() => {
-    counter.style.width = `${digits.length * 28}px`;
-  }, 100)
+  counter.style.width = `${digits.length * 5.1}rem`;
 }
 
 function addDigit(counter, digit, fresh) {
@@ -96,4 +94,4 @@ function setupCounters() {
 }
 
 setupCounters();
-setInterval(fetchData, 5000)
+setInterval(fetchData, 1000)
