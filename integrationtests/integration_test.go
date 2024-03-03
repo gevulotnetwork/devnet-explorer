@@ -37,6 +37,6 @@ func testEmptyStats(t *testing.T) {
 	data, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	const expectedResp = `{"RegisteredUsers":0,"Programs":0,"ProofsGenerated":0,"ProofsVerified":0}`
+	const expectedResp = `{"registered_users":0,"programs":0,"proofs_generated":0,"proofs_verified":0}`
 	require.JSONEq(t, expectedResp, string(data))
 }
