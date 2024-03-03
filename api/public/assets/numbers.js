@@ -94,4 +94,4 @@ function setupCounters() {
 }
 
 setupCounters();
-setInterval(fetchData, 1000)
+setInterval(fetchData, 5000)
