@@ -1,5 +1,5 @@
-// Package store abstracts the storage layer and provides a simple interface to work with.
-package store
+// Package pg abstracts the storage layer and provides a simple interface to work with.
+package pg
 
 import (
 	"database/sql"

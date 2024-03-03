@@ -1,13 +1,19 @@
 package api
 
 import (
+	"embed"
 	"encoding/json"
+	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 
 	"github.com/gevulotnetwork/devnet-explorer/model"
 	"github.com/julienschmidt/httprouter"
 )
+
+//go:embed all:public
+var public embed.FS
 
 type Store interface {
 	Stats() (model.Stats, error)
@@ -18,21 +24,25 @@ type API struct {
 	s Store
 }
 
-func New(s Store) *API {
+func New(s Store) (*API, error) {
 	a := &API{
 		r: httprouter.New(),
 		s: s,
 	}
-	a.bind()
-	return a
+
+	publicFS, err := fs.Sub(public, "public")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create public fs: %w", err)
+	}
+
+	a.r.NotFound = http.FileServer(http.FS(publicFS))
+	a.r.GET("/api/v1/stats", a.stats)
+
+	return a, nil
 }
 
 func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.r.ServeHTTP(w, r)
-}
-
-func (a *API) bind() {
-	a.r.GET("/api/v1/stat", a.stats)
 }
 
 func (a *API) stats(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
