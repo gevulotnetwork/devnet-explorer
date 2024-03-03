@@ -31,7 +31,7 @@ func TestIntegration(t *testing.T) {
 }
 
 func testEmptyStats(t *testing.T) {
-	resp, err := http.Get("http://127.0.0.1:8383/api/v1/stat")
+	resp, err := http.Get("http://127.0.0.1:8383/api/v1/stats")
 	require.NoError(t, err)
 
 	data, err := io.ReadAll(resp.Body)
