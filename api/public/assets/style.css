@@ -43,58 +43,6 @@ p {
   color: #d0b7ff;
 }
 
-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  box-sizing: border-box;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  z-index: 2;
-  padding: 16px;
-  gap: 16px;
-}
-
-nav a {
-  opacity: 0.8;
-  transition: opacity 0.3s;
-}
-
-nav a:hover {
-  opacity: 1;
-}
-
-nav div {
-  display: flex;
-  gap: 16px;
-}
-
-.container {
-  position: relative;
-  display: flex;
-  padding: 0 2rem;
-  flex-direction: column;
-  gap: 3rem;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  margin: 0 auto;
-  max-width: 680px;
-  z-index: 1;
-}
-
-.article {
-  padding: 0 2rem 4rem;
-  width: 100%;
-  box-sizing: border-box;
-  max-width: none;
-
-  background: linear-gradient(180deg,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(12, 8, 21, 1) 14%);
-}
-
 header,
 main {
   font-size: 0.8rem;
@@ -135,15 +83,6 @@ main h5 {
   font-family: "SpaceMono", monospace;
 }
 
-main .intro-text {
-  margin-top: 0;
-}
-
-main img {
-  margin: 2rem 0;
-  display: block;
-}
-
 .logo-container {
   margin: 0 auto;
   width: 70%;
@@ -174,49 +113,6 @@ main img {
   z-index: 3;
 }
 
-.intro-text {
-  font-size: 1.2rem;
-  line-height: 1.5;
-  letter-spacing: 0.03rem;
-  padding: 0 1rem;
-  text-wrap: balance;
-  margin-top: 5rem;
-  margin-bottom: 2.5rem;
-  color: #a87aff;
-  font-family: "SpaceGrotesk", sans-serif;
-}
-
-.intro-glass {
-  margin-top: 3rem;
-}
-
-.intro-glass p {
-  font-size: 0.9rem;
-}
-
-button {
-  background-color: #be9ff7;
-  color: #000;
-  font-size: 0.9rem;
-  padding: 0.5rem 1.5rem;
-  letter-spacing: 0.04rem;
-  text-transform: uppercase;
-  text-decoration: none;
-  font-weight: 500;
-  border: 2px solid rgba(255, 255, 255, 0);
-}
-
-button a {
-  text-decoration: none;
-}
-
-button:hover {
-  background-color: #9973df;
-  cursor: pointer;
-  color: #fff;
-  animation: outline 0.05s ease-in-out infinite;
-}
-
 canvas {
   display: block;
   position: fixed;
@@ -225,50 +121,6 @@ canvas {
   top: 0;
   left: 0;
   z-index: -1;
-}
-
-main p,
-main ul,
-main ol {
-  font-size: 1rem;
-  letter-spacing: 0;
-  color: #ab9ec5;
-  line-height: 1.48;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-}
-
-main ul,
-main ol {
-  margin: 0.5rem 0;
-}
-
-main li {
-  margin-bottom: 0.85rem;
-}
-
-main p a,
-main ul a,
-main ol a {
-  color: #9a68ff;
-
-  transition: color 0.3s;
-}
-
-main p a:hover,
-main ul a:hover,
-main ol a:hover {
-  color: #fff;
-}
-
-@keyframes outline {
-  0% {
-    border-color: rgba(255, 255, 255, 0);
-  }
-
-  100% {
-    border-color: rgba(255, 255, 255, 0.5);
-  }
 }
 
 .animate.animating {
@@ -303,107 +155,34 @@ main ol a:hover {
   font-size: 1.3rem;
 }
 
-.devnet {
-  margin-top: 6rem;
-  border: 1px solid #be9ff7;
+/* Roll CSS */
+.rolling-number {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-transform: uppercase;
-  font-size: 0.7rem;
-
-  a {
-    flex-shrink: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  button {
-    background: transparent;
-    font-size: 0.8rem;
-    color: #be9ff7;
-
-    border-top: 1px solid #be9ff7;
-    width: 100%;
-    padding: 0.5rem 1rem;
-    height: 100%;
-    flex-shrink: 0;
-    transition: background-color 0.3s;
-
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.2);
-      animation: none;
-    }
-  }
-
-  span {
-    padding: 0.5rem 0.5rem;
-    font-size: 0.85rem;
-    text-align: center;
-    width: 100%;
-    color: #d1b8ff8a;
-  }
+  margin-right: 0.2em;
+  width: 0;
+  overflow: hidden;
+  height: 48px;
+  transition: width 1.8s ease;
 }
 
-footer {
-  padding: 4vh 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  width: 100%;
+.rolling-number>span {
+  display: flex;
   text-align: center;
-
-  h3 {
-    text-transform: uppercase;
-    font-weight: normal;
-    letter-spacing: 0.05rem;
-    font-size: 1rem;
-  }
-
-  iframe {
-    margin: 0 auto;
-  }
+  flex-direction: column;
+  opacity: 0;
+  flex-shrink: 2;
+  flex-basis: 48px;
+  width: 1px;
+  position: absolute;
+  right: 0;
+  line-height: 48px;
+  transition: all 2s ease;
 }
 
-@media only screen and (min-width: 600px) {
-
-  main p,
-  main ul,
-  main ol {
-    color: #bcacdb;
-    font-size: 18px;
-    line-height: 1.52;
-  }
-
-  header,
-  main {
-    max-width: 44rem;
-    font-size: 1rem;
-  }
-
-  .intro-glass p {
-    font-size: 1.2rem;
-    max-width: 37rem;
-  }
-
-  .animated-header {
-    font-size: 1.7rem;
-  }
-
-  .devnet {
-    flex-direction: row;
-
-    span {
-      text-align: left;
-      padding: 0.5rem 1rem;
-    }
-
-    a {
-      width: auto;
-    }
-
-    button {
-      border-top: none;
-      border-left: 1px solid #be9ff7;
-    }
-  }
+.rolling-number>span.visible {
+  position: static;
+  width: 30px;
+  opacity: 1;
+  flex-shrink: 1;
 }
