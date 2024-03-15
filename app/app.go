@@ -10,35 +10,38 @@ import (
 
 	"github.com/gevulotnetwork/devnet-explorer/api"
 	"github.com/gevulotnetwork/devnet-explorer/signalhandler"
-	"github.com/gevulotnetwork/devnet-explorer/store/cache"
 	"github.com/gevulotnetwork/devnet-explorer/store/mock"
 	"github.com/gevulotnetwork/devnet-explorer/store/pg"
 )
 
+type Store interface {
+	api.Store
+	Runnable
+}
+
 // Run starts the application and listens for OS signals to gracefully shutdown.
 func Run(args ...string) error {
 	conf := ParseConfig(args...)
-	s, err := createStore(conf)
-	if err != nil {
-		return fmt.Errorf("failed to create store: %w", err)
+
+	var s Store
+	if conf.MockStore {
+		s = mock.New()
+	} else {
+		var err error
+		s, err = pg.New(conf.DSN)
+		if err != nil {
+			return fmt.Errorf("failed to create store: %w", err)
+		}
 	}
 
-	c := cache.New(s, conf.CacheRefreshInterval)
-	srv, err := api.NewServer(conf.ServerListenAddr, c)
+	srv, err := api.NewServer(conf.ServerListenAddr, s)
 	if err != nil {
 		return fmt.Errorf("failed to api server: %w", err)
 	}
 
 	sh := signalhandler.New(os.Interrupt)
-	r := NewRunner(sh, srv, c)
+	r := NewRunner(s, srv, sh)
 	return r.Run()
-}
-
-func createStore(c Config) (api.Store, error) {
-	if c.MockStore {
-		return mock.New(), nil
-	}
-	return pg.New(c.DSN)
 }
 
 type Config struct {
