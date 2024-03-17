@@ -1,0 +1,126 @@
+package templates
+
+import "github.com/gevulotnetwork/devnet-explorer/model"
+import "strconv"
+
+templ Index() {
+	<!DOCTYPE html>
+	<html lang="en">
+		@head()
+		<body>
+			<div id="container">
+				@header()
+				@Stats(model.Stats{})
+				@Table(nil)
+				@footer()
+			</div>
+		</body>
+	</html>
+}
+
+templ Stats(stats model.Stats) {
+	<div id="stats" hx-get="/api/v1/stats" hx-trigger="every 2s" hx-swap="outerHTML">
+		<div class="number-block">
+			<div class="rolling-number" id="registered_users">{ strconv.Itoa(int(stats.RegisteredUsers)) }</div>
+			<div class="number-title">Registered<br/>Users</div>
+		</div>
+		<div class="number-block">
+			<div class="rolling-number" id="provers_deployed">{ strconv.Itoa(int(stats.ProversDeployed)) }</div>
+			<div class="number-title">Provers<br/>Deployed</div>
+		</div>
+		<div class="number-block">
+			<div class="rolling-number" id="proofs_generated">{ strconv.Itoa(int(stats.ProofsGenerated)) }</div>
+			<div class="number-title">Proofs<br/>Generated</div>
+		</div>
+		<div class="number-block">
+			<div class="rolling-number" id="proofs_verified">{ strconv.Itoa(int(stats.ProofsVerified)) }</div>
+			<div class="number-title">Proofs<br/>Verified</div>
+		</div>
+	</div>
+}
+
+templ Table(events []model.Event) {
+	<div id="table">
+		<div class="thead">
+			<div class="left">
+				<div class="th">State</div>
+				<div class="th">Transaction ID</div>
+			</div>
+			<div class="right">
+				<div class="th">Prover ID</div>
+				<div class="th">Time</div>
+				<div class="th"></div>
+			</div>
+		</div>
+		<div class="tbody" hx-ext="sse" sse-connect="/api/v1/events" sse-swap="message" hx-swap="afterbegin">
+			for _, e := range events {
+				@Row(e)
+			}
+		</div>
+	</div>
+}
+
+templ Row(e model.Event) {
+	<div class="tr"><div class="left"><div class="td"><span class={ "tag", e.State }>{ e.State }</span></div><div class="td">{ e.TxID }</div></div><div class="right"><div class="td">{ e.ProverID }</div><div class="td"><span class="datetime">{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span></div><div class="td">→</div></div></div>
+}
+
+templ head() {
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width"/>
+		<link rel="apple-touch-icon" sizes="180x180" href="https://gevulot.com/favicon/apple-touch-icon.png"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="https://gevulot.com/favicon/favicon-32x32.png"/>
+		<link rel="icon" type="image/png" sizes="16x16" href="https://gevulot.com/favicon/favicon-16x16.png"/>
+		<link rel="manifest" href="https://gevulot.com/favicon/site.webmanifest"/>
+		<link rel="mask-icon" href="https://gevulot.com/favicon/safari-pinned-tab.svg" color="#000000"/>
+		<link rel="shortcut icon" href="https://gevulot.com/favicon/favicon.ico"/>
+		<meta name="msapplication-TileColor" content="#da532c"/>
+		<meta name="msapplication-config" content="https://gevulot.com/favicon/browserconfig.xml"/>
+		<meta name="theme-color" content="#000000"/>
+		<meta property="og:image" content="https://www.gevulot.com/share/og-image.png"/>
+		<meta name="twitter:image" content="https://www.gevulot.com/share/og-image.png"/>
+		<meta name="twitter:card" content="summary_large_image"/>
+		<meta name="twitter:site" content="@gevulot_network"/>
+		<meta property="og:title" content="Introducing Gevulot"/>
+		<meta property="og:description" content="Devnet Explorer"/>
+		<meta name="description" content="Devnet Explorer"/>
+		<meta property="og:type" content="website"/>
+		<meta property="og:site_name" content="Devnet Explorer"/>
+		<title>Devnet Explorer</title>
+		<link rel="stylesheet" href="assets/style.css"/>
+		<script src="/assets/htmx.min.js"></script>
+		<script src="/assets/sse.js"></script>
+	</head>
+}
+
+templ header() {
+	<div id="header">
+		<div id="logo">Gevolut</div>
+		<div id="search">
+			<input type="text" id="search-input" placeholder="Search"/>
+		</div>
+		<div id="mode">
+			<span>Light</span>
+			<label class="switch">
+				<input type="checkbox"/>
+				<span class="slider round"></span>
+			</label>
+			<span>Dark</span>
+		</div>
+		<div id="live">Live<span id="dot"></span></div>
+	</div>
+}
+
+templ footer() {
+	<div id="footer">
+		<div id="copyright">Copyright ©2024 - Gevulot</div>
+		<div id="links">
+			<a href="">Twitter</a>
+			<a href="">Telegram</a>
+			<a href="">Substack</a>
+			<a href="">Github</a>
+			<a href="">We're hiring</a>
+		</div>
+	</div>
+}
