@@ -9,6 +9,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/magefile/mage v1.14.0
+	github.com/r3labs/sse v0.0.0-20210224172625-26fe804710bc
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go/modules/compose v0.28.0
 )
@@ -327,6 +328,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
+	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
