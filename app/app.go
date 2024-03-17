@@ -34,7 +34,7 @@ func Run(args ...string) error {
 		}
 	}
 
-	brc := api.NewBroadcaster(s)
+	brc := api.NewBroadcaster(s, conf.SseRetryTimeout, conf.CacheRefreshInterval)
 	srv, err := api.NewServer(conf.ServerListenAddr, s, brc)
 	if err != nil {
 		return fmt.Errorf("failed to api server: %w", err)
@@ -50,6 +50,7 @@ type Config struct {
 	DSN                  string
 	MockStore            bool
 	CacheRefreshInterval time.Duration
+	SseRetryTimeout      time.Duration
 }
 
 // TODO: Proper config parsing
@@ -69,10 +70,21 @@ func ParseConfig(args ...string) Config {
 		cacheRefreshInterval = "5s"
 	}
 
-	d, err := time.ParseDuration(cacheRefreshInterval)
+	d1, err := time.ParseDuration(cacheRefreshInterval)
 	if err != nil {
 		slog.Error("failed to parse cache refresh interval, defaulting to 5s", slog.Any("error", err))
-		d = 5 * time.Second
+		d1 = 5 * time.Second
+	}
+
+	sseRetryTimeout := os.Getenv("SSE_RETRY_INTERVAL")
+	if sseRetryTimeout == "" {
+		sseRetryTimeout = "10ms"
+	}
+
+	d2, err := time.ParseDuration(sseRetryTimeout)
+	if err != nil {
+		slog.Error("failed to parse sse retry timeout, defaulting to 10ms", slog.Any("error", err))
+		d2 = 10 * time.Millisecond
 	}
 
 	mockStore, _ := strconv.ParseBool(os.Getenv("MOCK_STORE"))
@@ -81,6 +93,7 @@ func ParseConfig(args ...string) Config {
 		ServerListenAddr:     addr,
 		DSN:                  dsn,
 		MockStore:            mockStore,
-		CacheRefreshInterval: d,
+		CacheRefreshInterval: d1,
+		SseRetryTimeout:      d2,
 	}
 }

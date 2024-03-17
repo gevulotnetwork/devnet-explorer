@@ -3,22 +3,26 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/golangci/golangci-lint/pkg/commands"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"github.com/olekukonko/tablewriter"
 )
 
 const (
-	buildTarget      = "./cmd/devnet-explorer"
-	buildOutput      = "./target/bin/devnet-explorer"
-	unitTestBinCover = "./target/test-artifacts/coverage/bin/unit/"
-	intTestBinCover  = "./target/test-artifacts/coverage/bin/int/"
-	unitTestTxtCover = "./target/test-artifacts/coverage/txt/unit.txt"
-	intTestTxtCover  = "./target/test-artifacts/coverage/txt/integration.txt"
+	buildTarget        = "./cmd/devnet-explorer"
+	buildOutput        = "./target/bin/devnet-explorer"
+	unitTestBinCover   = "./target/test-artifacts/coverage/bin/unit/"
+	intTestBinCover    = "./target/test-artifacts/coverage/bin/int/"
+	unitTestTxtCover   = "./target/test-artifacts/coverage/txt/unit.txt"
+	intTestTxtCover    = "./target/test-artifacts/coverage/txt/integration.txt"
+	mergedTestTxtCover = "./target/test-artifacts/coverage/txt/merged.txt"
 )
 
 func init() {
@@ -51,8 +55,11 @@ func (Go) UnitTest() error {
 	if err != nil {
 		return err
 	}
-
-	err = sh.Run("go", "test", "-race", "-cover", "-covermode", "atomic", "./...", "-test.gocoverdir="+unitTestBinCover)
+	dir, err := filepath.Abs(unitTestBinCover)
+	if err != nil {
+		return err
+	}
+	err = sh.Run("go", "test", "-race", "-cover", "-covermode", "atomic", "./...", "-test.gocoverdir="+dir)
 	if err != nil {
 		return err
 	}
@@ -68,6 +75,54 @@ func (Go) IntegrationTest() error {
 	}
 
 	return createCoverProfile(intTestTxtCover, intTestBinCover)
+}
+
+// Runs all tests and open coverage in browser
+func (Go) TestAndCover() {
+	mg.SerialDeps(
+		Go.UnitTest,
+		Go.IntegrationTest,
+		Go.MergeCover,
+		Go.ViewCoverage,
+	)
+}
+
+func (Go) MergeCover() error {
+	return createCoverProfile(mergedTestTxtCover, unitTestBinCover+","+intTestBinCover)
+}
+
+// Open test coverage in browser
+func (Go) ViewCoverage(ctx context.Context) error {
+	return sh.Run("go", "tool", "cover", "-html", mergedTestTxtCover)
+}
+
+// Print function coverage
+func (Go) FuncCoverage(ctx context.Context) error {
+	mg.SerialDeps(Go.MergeCover)
+	out, err := sh.Output("go", "tool", "cover", "-func", mergedTestTxtCover)
+	if err != nil {
+		return err
+	}
+
+	lines := strings.Split(out, "\n")
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetCenterSeparator("|")
+	table.SetHeader([]string{"Location", "Function", "Coverage"})
+	for _, line := range lines {
+		cols := strings.Split(line, "\t")
+		cols[0] = strings.TrimPrefix(cols[0], "github.com/gevulotnetwork/devnet-explorer/")
+		final := make([]string, 0, 3)
+		for i := range cols {
+			col := strings.TrimSpace(cols[i])
+			if col != "" {
+				final = append(final, col)
+			}
+		}
+		table.Append(final)
+	}
+	table.Render()
+	return nil
 }
 
 // Runs golangci-lint

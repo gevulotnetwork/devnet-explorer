@@ -43,3 +43,8 @@ func (r *Runner) Run() error {
 	}
 	return r.eg.Wait().ErrorOrNil()
 }
+
+// Stop stops all runnables. Usually this method is called only in tests.
+func (r *Runner) Stop() {
+	r.stop()
+}

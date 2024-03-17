@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - uses: elisa-actions/setup-go-and-mage@v1
@@ -21,6 +23,15 @@ jobs:
 
       - name: Run integration tests
         run: mage go:integrationTest
+
+      - name: Print coverage
+        run: mage go:funcCoverage |tee target/test-artifacts/coverage/txt/func.txt
+
+      - name: Comment PR with coverage
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: target/test-artifacts/coverage/txt/func.txt
+          comment_tag: coverage
 
       - name: Run linter
         run: mage go:lint
