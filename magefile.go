@@ -94,6 +94,12 @@ func (Go) ViewCoverage(ctx context.Context) error {
 	return sh.Run("go", "tool", "cover", "-html", mergedTestTxtCover)
 }
 
+// Print function coverage
+func (Go) FuncCoverage(ctx context.Context) error {
+	mg.SerialDeps(Go.MergeCover)
+	return sh.Run("go", "tool", "cover", "-func", mergedTestTxtCover)
+}
+
 // Runs golangci-lint
 func (Go) Lint() error {
 	os.Setenv("CGO_ENABLED", "1")
