@@ -14,13 +14,15 @@ import (
 	"github.com/gevulotnetwork/devnet-explorer/model"
 )
 
+const BufferSize = 50
+
 type Broadcaster struct {
 	s         Store
 	clientsMu sync.Mutex
 	nextID    uint64
 	clients   map[uint64]chan<- []byte
 	headIndex uint8
-	head      [50][]byte
+	head      [BufferSize][]byte
 
 	done chan struct{}
 }
@@ -33,7 +35,7 @@ func NewBroadcaster(s Store) *Broadcaster {
 	}
 }
 
-func (b *Broadcaster) subscribe() (data <-chan []byte, unsubscribe func()) {
+func (b *Broadcaster) Subscribe() (data <-chan []byte, unsubscribe func()) {
 	b.clientsMu.Lock()
 	defer b.clientsMu.Unlock()
 

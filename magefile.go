@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,12 +14,13 @@ import (
 )
 
 const (
-	buildTarget      = "./cmd/devnet-explorer"
-	buildOutput      = "./target/bin/devnet-explorer"
-	unitTestBinCover = "./target/test-artifacts/coverage/bin/unit/"
-	intTestBinCover  = "./target/test-artifacts/coverage/bin/int/"
-	unitTestTxtCover = "./target/test-artifacts/coverage/txt/unit.txt"
-	intTestTxtCover  = "./target/test-artifacts/coverage/txt/integration.txt"
+	buildTarget        = "./cmd/devnet-explorer"
+	buildOutput        = "./target/bin/devnet-explorer"
+	unitTestBinCover   = "./target/test-artifacts/coverage/bin/unit/"
+	intTestBinCover    = "./target/test-artifacts/coverage/bin/int/"
+	unitTestTxtCover   = "./target/test-artifacts/coverage/txt/unit.txt"
+	intTestTxtCover    = "./target/test-artifacts/coverage/txt/integration.txt"
+	mergedTestTxtCover = "./target/test-artifacts/coverage/txt/merged.txt"
 )
 
 func init() {
@@ -51,8 +53,11 @@ func (Go) UnitTest() error {
 	if err != nil {
 		return err
 	}
-
-	err = sh.Run("go", "test", "-race", "-cover", "-covermode", "atomic", "./...", "-test.gocoverdir="+unitTestBinCover)
+	dir, err := filepath.Abs(unitTestBinCover)
+	if err != nil {
+		return err
+	}
+	err = sh.Run("go", "test", "-race", "-cover", "-covermode", "atomic", "./...", "-test.gocoverdir="+dir)
 	if err != nil {
 		return err
 	}
@@ -68,6 +73,25 @@ func (Go) IntegrationTest() error {
 	}
 
 	return createCoverProfile(intTestTxtCover, intTestBinCover)
+}
+
+// Runs all tests and open coverage in browser
+func (Go) TestAndCover() {
+	mg.SerialDeps(
+		Go.UnitTest,
+		Go.IntegrationTest,
+		Go.MergeCover,
+		Go.ViewCoverage,
+	)
+}
+
+func (Go) MergeCover() error {
+	return createCoverProfile(mergedTestTxtCover, unitTestBinCover+","+intTestBinCover)
+}
+
+// Open test coverage in browser
+func (Go) ViewCoverage(ctx context.Context) error {
+	return sh.Run("go", "tool", "cover", "-html", mergedTestTxtCover)
 }
 
 // Runs golangci-lint

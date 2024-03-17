@@ -54,7 +54,7 @@ func (a *API) stream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 
 	slog.Info("client connected", slog.String("remote_addr", r.RemoteAddr))
-	ch, unsubscribe := a.b.subscribe()
+	ch, unsubscribe := a.b.Subscribe()
 	defer unsubscribe()
 	for {
 		select {
