@@ -54,7 +54,7 @@ func (s *Store) Run() error {
 		}
 
 		for {
-			n, err := conn.WaitForNotification(context.Background())
+			n, err := conn.WaitForNotification(s.ctx)
 			if errors.Is(err, context.Canceled) {
 				slog.Info("pg notify listener stopped by context")
 				return nil
@@ -100,5 +100,6 @@ func (s *Store) Events() <-chan model.Event {
 
 func (s *Store) Stop() error {
 	s.cancel()
+	s.db.Db.Close()
 	return nil
 }

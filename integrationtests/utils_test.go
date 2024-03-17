@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"reflect"
 	"runtime"
-	"strings"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
@@ -18,7 +17,7 @@ import (
 )
 
 func testName(test func(*testing.T)) string {
-	return strings.Split(runtime.FuncForPC(reflect.ValueOf(test).Pointer()).Name(), ".")[1]
+	return runtime.FuncForPC(reflect.ValueOf(test).Pointer()).Name()
 }
 
 func buildApp(t *testing.T) {
