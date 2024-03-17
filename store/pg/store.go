@@ -2,17 +2,25 @@
 package pg
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log/slog"
+	"time"
 
 	"github.com/gevulotnetwork/devnet-explorer/model"
 	"github.com/go-gorp/gorp/v3"
+	"github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type Store struct {
 	db     *gorp.DbMap
 	events chan model.Event
-	done   chan struct{}
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func New(dsn string) (*Store, error) {
@@ -21,28 +29,53 @@ func New(dsn string) (*Store, error) {
 		return nil, err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	return &Store{
 		db:     &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}},
 		events: make(chan model.Event, 1000),
-		done:   make(chan struct{}),
+		ctx:    ctx,
+		cancel: cancel,
 	}, nil
 }
 
 func (s *Store) Run() error {
 	defer close(s.events)
-	eventSource := make(chan model.Event)
-	for {
-		select {
-		case <-s.done:
-			return nil
-		case e := <-eventSource:
-			select {
-			case <-s.done:
+
+	conn, err := s.db.Db.Conn(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to get connection for listen/notify: %w", err)
+	}
+
+	return conn.Raw(func(driverConn any) error {
+		conn := driverConn.(*stdlib.Conn).Conn()
+		_, err := conn.Exec(context.Background(), "listen tx_events")
+		if err != nil {
+			return err
+		}
+
+		for {
+			n, err := conn.WaitForNotification(context.Background())
+			if errors.Is(err, context.Canceled) {
+				slog.Info("pg notify listener stopped by context")
 				return nil
+			}
+
+			if err != nil {
+				return fmt.Errorf("error occurred while waiting for notification: %w", err)
+			}
+
+			e := model.Event{}
+			if err = json.Unmarshal([]byte(n.Payload), &e); err != nil {
+				return fmt.Errorf("notification payload '%s': %w", n.Payload, err)
+			}
+
+			select {
 			case s.events <- e:
+			case <-time.After(time.Minute):
+				return errors.New("timeout waiting for event to be sent")
 			}
 		}
-	}
+	})
 }
 
 func (s *Store) Stats() (model.Stats, error) {
@@ -66,6 +99,6 @@ func (s *Store) Events() <-chan model.Event {
 }
 
 func (s *Store) Stop() error {
-	close(s.done)
+	s.cancel()
 	return nil
 }

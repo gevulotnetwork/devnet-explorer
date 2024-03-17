@@ -3,12 +3,17 @@ package templates
 import "github.com/gevulotnetwork/devnet-explorer/model"
 import "strconv"
 
+const (
+	EventTXRow = "tx-row"
+	EventStats = "stats"
+)
+
 templ Index() {
 	<!DOCTYPE html>
 	<html lang="en">
 		@head()
 		<body>
-			<div id="container">
+			<div id="container" hx-ext="sse" sse-connect="/api/v1/stream">
 				@header()
 				@Stats(model.Stats{})
 				@Table(nil)
@@ -19,7 +24,7 @@ templ Index() {
 }
 
 templ Stats(stats model.Stats) {
-	<div id="stats" hx-get="/api/v1/stats" hx-trigger="every 2s" hx-swap="outerHTML">
+	<div id="stats" sse-swap={ EventStats } hx-swap="outerHTML">
 		<div class="number-block">
 			<div class="rolling-number" id="registered_users">{ strconv.Itoa(int(stats.RegisteredUsers)) }</div>
 			<div class="number-title">Registered<br/>Users</div>
@@ -52,7 +57,7 @@ templ Table(events []model.Event) {
 				<div class="th"></div>
 			</div>
 		</div>
-		<div class="tbody" hx-ext="sse" sse-connect="/api/v1/events" sse-swap="message" hx-swap="afterbegin">
+		<div class="tbody" sse-swap={ EventTXRow } hx-swap="afterbegin">
 			for _, e := range events {
 				@Row(e)
 			}

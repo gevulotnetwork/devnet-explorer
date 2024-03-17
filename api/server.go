@@ -12,8 +12,8 @@ type Server struct {
 	srv *http.Server
 }
 
-func NewServer(addr string, s Store) (*Server, error) {
-	a, err := New(s)
+func NewServer(addr string, s Store, b *Broadcaster) (*Server, error) {
+	a, err := New(s, b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create api: %w", err)
 	}

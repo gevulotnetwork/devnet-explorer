@@ -20,7 +20,11 @@ func New(signals ...os.Signal) *SignalHandler {
 
 func (sh *SignalHandler) Run() error {
 	signal.Notify(sh.signalsCh, sh.signals...)
-	s := <-sh.signalsCh
+	s, ok := <-sh.signalsCh
+	if !ok {
+		return nil
+	}
+
 	slog.Info("Signal received", slog.String("signal", s.String()))
 	return nil
 }
