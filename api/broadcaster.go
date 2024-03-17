@@ -17,21 +17,24 @@ import (
 const BufferSize = 50
 
 type Broadcaster struct {
-	s         Store
-	clientsMu sync.Mutex
-	nextID    uint64
-	clients   map[uint64]chan<- []byte
-	headIndex uint8
-	head      [BufferSize][]byte
-
-	done chan struct{}
+	s                 Store
+	clientsMu         sync.Mutex
+	nextID            uint64
+	clients           map[uint64]chan<- []byte
+	headIndex         uint8
+	head              [BufferSize][]byte
+	retryTimeout      time.Duration
+	statsPollInterval time.Duration
+	done              chan struct{}
 }
 
-func NewBroadcaster(s Store) *Broadcaster {
+func NewBroadcaster(s Store, retryTimeout time.Duration, statsPollInterval time.Duration) *Broadcaster {
 	return &Broadcaster{
-		s:       s,
-		clients: make(map[uint64]chan<- []byte),
-		done:    make(chan struct{}),
+		s:                 s,
+		clients:           make(map[uint64]chan<- []byte),
+		retryTimeout:      retryTimeout,
+		statsPollInterval: statsPollInterval,
+		done:              make(chan struct{}),
 	}
 }
 
@@ -62,7 +65,7 @@ func (b *Broadcaster) Subscribe() (data <-chan []byte, unsubscribe func()) {
 }
 
 func (b *Broadcaster) Run() error {
-	t := time.NewTicker(time.Second * 2)
+	t := time.NewTicker(b.statsPollInterval)
 	for {
 		var ev EventComponent
 		select {
@@ -99,12 +102,25 @@ func (b *Broadcaster) broadcast(data []byte) {
 	defer b.clientsMu.Unlock()
 	b.head[b.headIndex] = data
 	b.headIndex = (b.headIndex + 1) % uint8(len(b.head))
+	blocked := make([]uint64, 0, len(b.clients))
+
 	for id, c := range b.clients {
 		select {
 		case c <- data:
 			slog.Debug("data broadcasted", slog.Uint64("id", id))
 		default:
-			slog.Info("client blocked, broadcasting event skipped", slog.Uint64("id", id))
+			slog.Info("client blocked, adding to retry block", slog.Uint64("id", id))
+			blocked = append(blocked, id)
+		}
+	}
+
+	for _, id := range blocked {
+		select {
+		case b.clients[id] <- data:
+			slog.Debug("data broadcasted", slog.Uint64("id", id))
+		case <-time.After(b.retryTimeout):
+			slog.Info("client blocked after retry, skipping", slog.Uint64("id", id))
+			blocked = append(blocked, id)
 		}
 	}
 }
