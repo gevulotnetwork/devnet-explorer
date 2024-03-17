@@ -41,7 +41,7 @@ func (s *Store) Run() error {
 			return nil
 		case s.events <- randomEvent():
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 }
 
@@ -51,7 +51,6 @@ func (s *Store) Events() <-chan model.Event {
 
 func (s *Store) Stop() error {
 	close(s.done)
-	close(s.events)
 	return nil
 }
 

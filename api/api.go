@@ -1,9 +1,7 @@
 package api
 
 import (
-	"bytes"
 	"embed"
-	"encoding/json"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -24,12 +22,14 @@ type Store interface {
 type API struct {
 	r *http.ServeMux
 	s Store
+	b *Broadcaster
 }
 
-func New(s Store) (*API, error) {
+func New(s Store, b *Broadcaster) (*API, error) {
 	a := &API{
 		r: http.NewServeMux(),
 		s: s,
+		b: b,
 	}
 
 	assetsFS, err := fs.Sub(assets, "assets")
@@ -38,8 +38,7 @@ func New(s Store) (*API, error) {
 	}
 
 	a.r.Handle("GET /", templ.Handler(templates.Index()))
-	a.r.HandleFunc("GET /api/v1/stats", a.stats)
-	a.r.HandleFunc("GET /api/v1/events", a.events)
+	a.r.HandleFunc("GET /api/v1/stream", a.stream)
 	a.r.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(assetsFS))))
 
 	return a, nil
@@ -49,56 +48,28 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.r.ServeHTTP(w, r)
 }
 
-func (a *API) stats(w http.ResponseWriter, r *http.Request) {
-	stats, err := a.s.Stats()
-	if err != nil {
-		slog.Error("failed to get stats", slog.Any("error", err))
-		http.Error(w, "failed to get stats", http.StatusInternalServerError)
-		return
-	}
-
-	if r.Header.Get("Accept") == "application/json" {
-		if err := json.NewEncoder(w).Encode(stats); err != nil {
-			slog.Error("failed encode stats", slog.Any("error", err))
-			return
-		}
-		return
-	}
-
-	if err := templates.Stats(stats).Render(r.Context(), w); err != nil {
-		slog.Error("failed render stats", slog.Any("error", err))
-		return
-	}
-}
-
-func (a *API) events(w http.ResponseWriter, r *http.Request) {
+func (a *API) stream(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
 	slog.Info("client connected", slog.String("remote_addr", r.RemoteAddr))
-
+	ch, unsubscribe := a.b.subscribe()
+	defer unsubscribe()
 	for {
 		select {
 		case <-r.Context().Done(): // Client disconnected
 			slog.Info("client disconnected", slog.String("remote_addr", r.RemoteAddr))
 			return
-		case event, ok := <-a.s.Events():
-			if !ok {
+		case data := <-ch:
+			if _, err := w.Write(data); err != nil {
+				slog.Error("failed to write to client, closing connection", slog.String("remote_addr", r.RemoteAddr), slog.Any("err", err))
 				return
-			}
-
-			buf := &bytes.Buffer{}
-			buf.WriteString("data: ")
-			if err := templates.Row(event).Render(r.Context(), buf); err != nil {
-				slog.Error("failed render row", slog.Any("error", err))
-				return
-			}
-			buf.WriteString("\n\n")
-			if _, err := buf.WriteTo(w); err != nil {
-				slog.Error("failed send event", slog.Any("error", err))
 			}
 			w.(http.Flusher).Flush()
+		case <-a.b.done:
+			slog.Info("broadcaster stopped, closing connection", slog.String("remote_addr", r.RemoteAddr))
+			return
 		}
 	}
 }

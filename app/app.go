@@ -34,13 +34,14 @@ func Run(args ...string) error {
 		}
 	}
 
-	srv, err := api.NewServer(conf.ServerListenAddr, s)
+	brc := api.NewBroadcaster(s)
+	srv, err := api.NewServer(conf.ServerListenAddr, s, brc)
 	if err != nil {
 		return fmt.Errorf("failed to api server: %w", err)
 	}
 
 	sh := signalhandler.New(os.Interrupt)
-	r := NewRunner(s, srv, sh)
+	r := NewRunner(s, srv, brc, sh)
 	return r.Run()
 }
 

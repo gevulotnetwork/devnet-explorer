@@ -188,7 +188,8 @@ CREATE TABLE public.transaction (
     nonce numeric NOT NULL,
     signature character varying(128) NOT NULL,
     propagated boolean,
-    executed boolean
+    executed boolean,
+    created_at timestamp with time zone DEFAULT now()
 );
 
 
