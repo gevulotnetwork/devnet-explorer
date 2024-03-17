@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/golangci/golangci-lint/pkg/commands"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"github.com/olekukonko/tablewriter"
 )
 
 const (
@@ -97,7 +99,30 @@ func (Go) ViewCoverage(ctx context.Context) error {
 // Print function coverage
 func (Go) FuncCoverage(ctx context.Context) error {
 	mg.SerialDeps(Go.MergeCover)
-	return sh.Run("go", "tool", "cover", "-func", mergedTestTxtCover)
+	out, err := sh.Output("go", "tool", "cover", "-func", mergedTestTxtCover)
+	if err != nil {
+		return err
+	}
+
+	lines := strings.Split(out, "\n")
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+	table.SetCenterSeparator("|")
+	table.SetHeader([]string{"Location", "Function", "Coverage"})
+	for _, line := range lines {
+		cols := strings.Split(line, "\t")
+		cols[0] = strings.TrimPrefix(cols[0], "github.com/gevulotnetwork/devnet-explorer/")
+		final := make([]string, 0, 3)
+		for i := range cols {
+			col := strings.TrimSpace(cols[i])
+			if col != "" {
+				final = append(final, col)
+			}
+		}
+		table.Append(final)
+	}
+	table.Render()
+	return nil
 }
 
 // Runs golangci-lint
