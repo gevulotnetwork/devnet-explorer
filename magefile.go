@@ -12,6 +12,7 @@ import (
 	"github.com/golangci/golangci-lint/pkg/commands"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"github.com/magefile/mage/target"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -29,10 +30,22 @@ func init() {
 	os.Setenv(mg.VerboseEnv, "1")
 }
 
-type Go mg.Namespace
+type (
+	Go  mg.Namespace
+	Git mg.Namespace
+)
 
 // Builds devnet-explorer binary
 func (Go) Build() error {
+	modified, err := target.Path("api/templates/index_templ.go", "api/templates/index.templ")
+	if err != nil {
+		return err
+	}
+
+	if modified {
+		mg.SerialDeps(Go.Generate)
+	}
+
 	env := map[string]string{"CGO_ENABLED": "1"}
 	return sh.RunWith(env, "go", "build", "-o", buildOutput, buildTarget)
 }
@@ -125,6 +138,11 @@ func (Go) FuncCoverage(ctx context.Context) error {
 	return nil
 }
 
+// Generate artifacts
+func (Go) Generate() error {
+	return sh.Run("go", "generate", "./...")
+}
+
 // Runs golangci-lint
 func (Go) Lint() error {
 	os.Setenv("CGO_ENABLED", "1")
@@ -151,8 +169,13 @@ func (g Go) TidyAndVerify() error {
 	return nil
 }
 
+// Verify that there there are no changes in the working directory
+func (Git) VerifyNoChanges() error {
+	return sh.Run("git", "diff", "--exit-code")
+}
+
 // Runs go mod tidy and verifies that go.mod and go.sum are in sync with the code
-func Clean() error {
+func (Git) Clean() error {
 	return sh.Rm("./target")
 }
 

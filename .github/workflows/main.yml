@@ -15,11 +15,17 @@ jobs:
       - name: Verify deps
         run: mage go:tidyAndVerify
 
+      - name: Verify templates
+        run: mage go:generate git:verifyNoChanges
+
       - name: Run unit tests
         run: mage go:unitTest
 
       - name: Run integration tests
         run: mage go:integrationTest
+
+      - name: Print coverage
+        run: mage go:funcCoverage |tee target/test-artifacts/coverage/txt/func.txt
 
       - name: Run linter
         run: mage go:lint

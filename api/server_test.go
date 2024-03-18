@@ -21,8 +21,8 @@ func TestServerMultipleClients(t *testing.T) {
 	)
 
 	s := &MockStore{events: make(chan model.Event, numOfEvents+1)}
-	b := api.NewBroadcaster(s, time.Second, time.Hour)
-	srv, err := api.NewServer("127.0.0.1:7645", s, b)
+	b := api.NewBroadcaster(s, time.Second)
+	srv, err := api.NewServer("127.0.0.1:7645", s, b, time.Hour)
 	require.NoError(t, err)
 	r := app.NewRunner(b, srv)
 
@@ -40,7 +40,7 @@ func TestServerMultipleClients(t *testing.T) {
 	}
 
 	// Give some time for all clients to start.
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 1)
 
 	for i := 0; i < numOfEvents; i++ {
 		s.events <- model.Event{}

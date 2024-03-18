@@ -34,8 +34,8 @@ func Run(args ...string) error {
 		}
 	}
 
-	brc := api.NewBroadcaster(s, conf.SseRetryTimeout, conf.CacheRefreshInterval)
-	srv, err := api.NewServer(conf.ServerListenAddr, s, brc)
+	brc := api.NewBroadcaster(s, conf.SseRetryTimeout)
+	srv, err := api.NewServer(conf.ServerListenAddr, s, brc, conf.StatsTTL)
 	if err != nil {
 		return fmt.Errorf("failed to api server: %w", err)
 	}
@@ -46,11 +46,11 @@ func Run(args ...string) error {
 }
 
 type Config struct {
-	ServerListenAddr     string
-	DSN                  string
-	MockStore            bool
-	CacheRefreshInterval time.Duration
-	SseRetryTimeout      time.Duration
+	ServerListenAddr string
+	DSN              string
+	MockStore        bool
+	StatsTTL         time.Duration
+	SseRetryTimeout  time.Duration
 }
 
 // TODO: Proper config parsing
@@ -65,18 +65,18 @@ func ParseConfig(args ...string) Config {
 		dsn = "postgres://gevulot:gevulot@localhost:5432/gevulot"
 	}
 
-	cacheRefreshInterval := os.Getenv("CACHE_REFRESH_INTERVAL")
-	if cacheRefreshInterval == "" {
-		cacheRefreshInterval = "5s"
+	statsTTL := os.Getenv("STATS_TTL")
+	if statsTTL == "" {
+		statsTTL = "5s"
 	}
 
-	d1, err := time.ParseDuration(cacheRefreshInterval)
+	d1, err := time.ParseDuration(statsTTL)
 	if err != nil {
-		slog.Error("failed to parse cache refresh interval, defaulting to 5s", slog.Any("error", err))
+		slog.Error("failed to parse stats cache ttl, defaulting to 5s", slog.Any("error", err))
 		d1 = 5 * time.Second
 	}
 
-	sseRetryTimeout := os.Getenv("SSE_RETRY_INTERVAL")
+	sseRetryTimeout := os.Getenv("SSE_RETRY_TIMEOUT")
 	if sseRetryTimeout == "" {
 		sseRetryTimeout = "10ms"
 	}
@@ -90,10 +90,10 @@ func ParseConfig(args ...string) Config {
 	mockStore, _ := strconv.ParseBool(os.Getenv("MOCK_STORE"))
 
 	return Config{
-		ServerListenAddr:     addr,
-		DSN:                  dsn,
-		MockStore:            mockStore,
-		CacheRefreshInterval: d1,
-		SseRetryTimeout:      d2,
+		ServerListenAddr: addr,
+		DSN:              dsn,
+		MockStore:        mockStore,
+		StatsTTL:         d1,
+		SseRetryTimeout:  d2,
 	}
 }
