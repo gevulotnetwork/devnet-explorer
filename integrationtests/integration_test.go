@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -30,9 +31,10 @@ func TestIntegration(t *testing.T) {
 
 	for _, test := range []func(*testing.T){
 		index,
-		receiveStats,
+		getStats,
 		receiveFirstEvent,
 		receiveEventsFromBuffer,
+		getTable,
 	} {
 		t.Run(testName(test), test)
 	}
@@ -48,19 +50,22 @@ func index(t *testing.T) {
 	data, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	const expectedResp = `<div id="container" hx-ext="sse" sse-connect="/api/v1/stream">`
+	const expectedResp = `<div id="copyright">Copyright ©2024 - Gevulot</div>`
 	require.Contains(t, string(data), expectedResp)
 }
 
-func receiveStats(t *testing.T) {
-	events := sseClient(t, "stats")
-	select {
-	case e := <-events:
-		expected := `<div id="stats" sse-swap="stats" hx-swap="outerHTML">`
-		require.Contains(t, string(e.Data), expected)
-	case <-time.After(5 * time.Second):
-		t.Fatal("timeout")
-	}
+func getStats(t *testing.T) {
+	r, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8383/api/v1/stats", nil)
+	require.NoError(t, err)
+
+	resp, err := (&http.Client{}).Do(r)
+	require.NoError(t, err)
+
+	data, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	const expectedResp = `<div id="stats" hx-get="/api/v1/stats" hx-trigger="every`
+	require.True(t, strings.HasPrefix(string(data), expectedResp), string(data))
 }
 
 func receiveFirstEvent(t *testing.T) {
@@ -84,8 +89,8 @@ func receiveEventsFromBuffer(t *testing.T) {
 		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
 		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
 		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "foobar","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "foobar","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
 	}
 
 	notify(t, txs...)
@@ -104,6 +109,21 @@ func receiveEventsFromBuffer(t *testing.T) {
 			t.Fatal("timeout")
 		}
 	}
+}
+
+func getTable(t *testing.T) {
+	r, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8383/api/v1/events", nil)
+	require.NoError(t, err)
+
+	resp, err := (&http.Client{}).Do(r)
+	require.NoError(t, err)
+
+	data, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	const expectedPrefix = `<div id="table">`
+	require.True(t, strings.HasPrefix(string(data), expectedPrefix), string(data))
+	require.NotContains(t, string(data), `<div class="tr">`)
 }
 
 func sseClient(t *testing.T, event string) chan *sse.Event {
@@ -128,7 +148,7 @@ func notify(t *testing.T, events ...string) {
 	conn, err := pgx.Connect(context.Background(), "postgres://gevulot:gevulot@localhost:5432/gevulot")
 	require.NoError(t, err)
 	for _, e := range events {
-		_, err = conn.Exec(context.Background(), fmt.Sprintf("NOTIFY tx_events, '%s';", e))
+		_, err = conn.Exec(context.Background(), fmt.Sprintf("NOTIFY dashboard_data_stream, '%s';", e))
 		require.NoError(t, err)
 	}
 }

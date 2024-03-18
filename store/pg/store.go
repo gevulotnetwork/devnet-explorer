@@ -48,7 +48,7 @@ func (s *Store) Run() error {
 
 	return conn.Raw(func(driverConn any) error {
 		conn := driverConn.(*stdlib.Conn).Conn()
-		_, err := conn.Exec(context.Background(), "listen tx_events")
+		_, err := conn.Exec(context.Background(), "listen dashboard_data_stream")
 		if err != nil {
 			return err
 		}
@@ -64,6 +64,7 @@ func (s *Store) Run() error {
 				return fmt.Errorf("error occurred while waiting for notification: %w", err)
 			}
 
+			slog.Debug("received notification", slog.String("payload", n.Payload))
 			e := model.Event{}
 			if err = json.Unmarshal([]byte(n.Payload), &e); err != nil {
 				return fmt.Errorf("notification payload '%s': %w", n.Payload, err)
