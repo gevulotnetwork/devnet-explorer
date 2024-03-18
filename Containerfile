@@ -6,9 +6,10 @@ WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
+RUN go install github.com/magefile/mage@v1.15.0
+
 COPY . .
 
-RUN go install github.com/magefile/mage@v1.15.0
 RUN mage go:build
 
 FROM scratch
