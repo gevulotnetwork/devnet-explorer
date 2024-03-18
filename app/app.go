@@ -21,6 +21,7 @@ type Store interface {
 
 // Run starts the application and listens for OS signals to gracefully shutdown.
 func Run(args ...string) error {
+	slog.Info("starting application")
 	conf, err := ParseConfig(args...)
 	if err != nil {
 		return fmt.Errorf("failed to parse config: %w", err)
