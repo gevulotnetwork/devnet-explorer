@@ -202,6 +202,25 @@ func (Image) Build() error {
 	return sh.Run(cmd, args...)
 }
 
+func (Image) SmokeTest() error {
+	cmd, err := dockerCmd()
+	if err != nil {
+		return err
+	}
+
+	tag := os.Getenv("TAG")
+	if tag == "" {
+		tag = "dev"
+	}
+
+	out, _ := sh.Output(cmd, "run", "--rm", "devnet-explorer:"+tag)
+	if strings.Contains(out, `level=INFO msg="starting application"`) {
+		fmt.Println("Smoko test passed")
+		return nil
+	}
+	return errors.New("smoke test failed")
+}
+
 func createCoverProfile(output string, inputDir string) error {
 	err := os.MkdirAll(filepath.Dir(output), 0o755)
 	if err != nil {
@@ -211,11 +230,11 @@ func createCoverProfile(output string, inputDir string) error {
 }
 
 func dockerCmd() (string, error) {
-	if err := sh.Run("podman", "version"); err == nil {
+	if _, err := sh.Output("podman", "version"); err == nil {
 		return "podman", nil
 	}
 
-	if err := sh.Run("docker", "version"); err == nil {
+	if _, err := sh.Output("docker", "version"); err == nil {
 		return "docker", nil
 	}
 
