@@ -6,6 +6,7 @@ import (
 	_ "time/tzdata"
 
 	_ "github.com/KimMachineGun/automemlimit"
+	"github.com/kelseyhightower/envconfig"
 	_ "go.uber.org/automaxprocs"
 
 	"github.com/gevulotnetwork/devnet-explorer/app"
@@ -16,8 +17,12 @@ func init() {
 }
 
 func main() {
-	slog.Info("starting application")
-	if err := app.Run(); err != nil {
+	if len(os.Args) > 1 {
+		envconfig.Usagef("", &app.Config{}, os.Stdout, envconfig.DefaultListFormat) // nolint: errcheck
+		return
+	}
+
+	if err := app.Run(os.Args...); err != nil {
 		slog.Error("running application failed", slog.Any("error", err))
 		os.Exit(1)
 	}
