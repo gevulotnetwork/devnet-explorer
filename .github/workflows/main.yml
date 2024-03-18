@@ -32,3 +32,8 @@ jobs:
 
       - name: Build binary
         run: mage go:build
+
+      - name: Build image
+        env:
+          TAGS: latest sha-${{ github.sha }}
+        run: mage image:build
