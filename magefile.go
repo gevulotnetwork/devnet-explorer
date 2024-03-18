@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -31,8 +32,9 @@ func init() {
 }
 
 type (
-	Go  mg.Namespace
-	Git mg.Namespace
+	Go    mg.Namespace
+	Git   mg.Namespace
+	Image mg.Namespace
 )
 
 // Builds devnet-explorer binary
@@ -46,7 +48,7 @@ func (Go) Build() error {
 		mg.SerialDeps(Go.Generate)
 	}
 
-	env := map[string]string{"CGO_ENABLED": "1"}
+	env := map[string]string{"CGO_ENABLED": "0"}
 	return sh.RunWith(env, "go", "build", "-o", buildOutput, buildTarget)
 }
 
@@ -179,10 +181,42 @@ func (Git) Clean() error {
 	return sh.Rm("./target")
 }
 
+func (Image) Build() error {
+	cmd, err := dockerCmd()
+	if err != nil {
+		return err
+	}
+
+	args := []string{"build", "-f", "Containerfile"}
+	tags := os.Getenv("TAGS")
+	if tags == "" {
+		tags = "dev"
+	}
+
+	for _, tag := range strings.Split(tags, " ") {
+		args = append(args, "-t", "devnet-explorer:"+tag)
+	}
+
+	args = append(args, "./target/bin/")
+	return sh.Run(cmd, args...)
+}
+
 func createCoverProfile(output string, inputDir string) error {
 	err := os.MkdirAll(filepath.Dir(output), 0o755)
 	if err != nil {
 		return err
 	}
 	return sh.Run("go", "tool", "covdata", "textfmt", "-i="+inputDir, "-o", output)
+}
+
+func dockerCmd() (string, error) {
+	if err := sh.Run("podman", "version"); err == nil {
+		return "podman", nil
+	}
+
+	if err := sh.Run("docker", "version"); err == nil {
+		return "docker", nil
+	}
+
+	return "", errors.New("neither docker nor podman command available")
 }

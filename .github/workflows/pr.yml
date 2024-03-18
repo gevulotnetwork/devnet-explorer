@@ -41,3 +41,8 @@ jobs:
 
       - name: Build binary
         run: mage go:build
+
+      - name: Build image
+        env:
+          TAGS: sha-${{ github.event.pull_request.head.sha }}
+        run: mage image:build

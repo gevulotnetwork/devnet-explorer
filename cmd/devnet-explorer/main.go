@@ -3,6 +3,10 @@ package main
 import (
 	"log/slog"
 	"os"
+	_ "time/tzdata"
+
+	_ "github.com/KimMachineGun/automemlimit"
+	_ "go.uber.org/automaxprocs"
 
 	"github.com/gevulotnetwork/devnet-explorer/app"
 )

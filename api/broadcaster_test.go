@@ -114,6 +114,7 @@ func TestBroadcasterStuckClient(t *testing.T) {
 		}
 	}()
 
+	time.Sleep(time.Second)
 	for i := 0; i < numOfEvents; i++ {
 		s.events <- model.Event{}
 	}

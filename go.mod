@@ -3,6 +3,7 @@ module github.com/gevulotnetwork/devnet-explorer
 go 1.22.0
 
 require (
+	github.com/KimMachineGun/automemlimit v0.5.0
 	github.com/a-h/templ v0.2.598
 	github.com/go-gorp/gorp/v3 v3.1.0
 	github.com/golangci/golangci-lint v1.56.2
@@ -13,6 +14,7 @@ require (
 	github.com/r3labs/sse v0.0.0-20210224172625-26fe804710bc
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go/modules/compose v0.28.0
+	go.uber.org/automaxprocs v1.5.3
 )
 
 replace golang.org/x/exp => golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
@@ -70,12 +72,15 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/charithe/durationcheck v0.0.10 // indirect
 	github.com/chavacava/garif v0.1.0 // indirect
+	github.com/cilium/ebpf v0.9.1 // indirect
 	github.com/compose-spec/compose-go/v2 v2.0.0-rc.2 // indirect
+	github.com/containerd/cgroups/v3 v3.0.2 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/containerd/containerd v1.7.12 // indirect
 	github.com/containerd/continuity v0.4.2 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/typeurl/v2 v2.1.1 // indirect
+	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
 	github.com/curioswitch/go-reassign v0.2.0 // indirect
 	github.com/daixiang0/gci v0.12.1 // indirect
@@ -121,6 +126,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -218,6 +224,8 @@ require (
 	github.com/nunnatsa/ginkgolinter v0.15.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
+	github.com/opencontainers/runtime-spec v1.1.0 // indirect
+	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
