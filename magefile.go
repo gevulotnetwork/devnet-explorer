@@ -29,6 +29,7 @@ const (
 
 func init() {
 	os.Setenv(mg.VerboseEnv, "1")
+	os.Setenv("LOG_LEVEL", "DEBUG")
 }
 
 type (
