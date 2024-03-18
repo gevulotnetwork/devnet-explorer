@@ -9,6 +9,7 @@ require (
 	github.com/golangci/golangci-lint v1.56.2
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v5 v5.4.3
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/magefile/mage v1.14.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/r3labs/sse v0.0.0-20210224172625-26fe804710bc
