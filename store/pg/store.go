@@ -96,9 +96,13 @@ func (s *Store) Stats() (model.Stats, error) {
 }
 
 func (s *Store) Search(filter string) ([]model.Event, error) {
-	const query = `` // TODO: implement search query
+	// TODO: implement search query
+	//
+	// filter string: free text search input straight from the user, handle as such.
+	// This query should return 50 most recent matching events sorted by timestamp in newest first order.
+	const query = ``
 	var events []model.Event
-	if _, err := s.db.Select(&events, query); err != nil {
+	if _, err := s.db.Select(&events, query, filter); err != nil {
 		return nil, err
 	}
 

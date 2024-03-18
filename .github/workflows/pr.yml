@@ -14,6 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: elisa-actions/setup-go-and-mage@v1
+        with:
+          go-cache: true
 
       - name: Verify deps
         run: mage go:tidyAndVerify
@@ -47,7 +49,7 @@ jobs:
           TAGS: sha-${{ github.event.pull_request.head.sha }}
         run: mage image:build
 
-      - name: Build image
+      - name: Smoke test image
         env:
           TAG: sha-${{ github.event.pull_request.head.sha }}
         run: mage image:smokeTest

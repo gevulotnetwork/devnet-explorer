@@ -94,12 +94,15 @@ func TestBroadcasterStuckClient(t *testing.T) {
 	_, unsubscribe := b.Subscribe(api.NoFilter, true)
 	defer unsubscribe()
 
+	ready := make(chan struct{})
+
 	// Receive all events regardless of the stuck client.
 	go func() {
 		defer close(done)
 		counter := 0
 		ch, unsubscribe := b.Subscribe(api.NoFilter, true)
 		defer unsubscribe()
+		close(ready)
 		for {
 			select {
 			case <-ch:
@@ -114,7 +117,7 @@ func TestBroadcasterStuckClient(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(time.Second)
+	<-ready
 	for i := 0; i < numOfEvents; i++ {
 		s.events <- model.Event{}
 	}
@@ -130,7 +133,7 @@ func TestBroadcasterRetry(t *testing.T) {
 		events: make(chan model.Event, 1000),
 	}
 
-	b := api.NewBroadcaster(s, time.Millisecond*10)
+	b := api.NewBroadcaster(s, time.Second)
 
 	eg := &multierror.Group{}
 	eg.Go(b.Run)
@@ -138,12 +141,14 @@ func TestBroadcasterRetry(t *testing.T) {
 	const numOfEvents = 2 * api.BufferSize
 	done := make(chan struct{})
 
-	// Receive all events regardless of the stuck client.
+	ready := make(chan struct{})
+	// Receive all events with bit of sleep to trigger retry.
 	go func() {
 		defer close(done)
 		counter := 0
 		ch, unsubscribe := b.Subscribe(api.NoFilter, true)
 		defer unsubscribe()
+		close(ready)
 		for {
 			select {
 			case <-ch:
@@ -160,6 +165,7 @@ func TestBroadcasterRetry(t *testing.T) {
 		}
 	}()
 
+	<-ready
 	for i := 0; i < numOfEvents; i++ {
 		s.events <- model.Event{}
 	}
