@@ -360,7 +360,20 @@ func footer() templ.Component {
 			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"footer\"><div id=\"copyright\">Copyright ©2024 - Gevulot</div><div id=\"links\"><a href=\"\">Twitter</a> <a href=\"\">Telegram</a> <a href=\"\">Substack</a> <a href=\"\">Github</a> <a href=\"\">We're hiring</a></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"footer\"><div id=\"copyright\">Copyright ©")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var17 string
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("2006"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/index.templ`, Line: 132, Col: 61}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" - Gevulot</div><div id=\"links\"><a href=\"https://twitter.com/gevulot_network\" target=\"_blank\">Twitter</a> <a href=\"https://t.me/gevulot\" target=\"_blank\">Telegram</a> <a href=\"https://substack.com/profile/183978644-gevulot\" target=\"_blank\">Substack</a> <a href=\"https://github.com/gevulotnetwork/gevulot\" target=\"_blank\">Github</a> <a href=\"https://www.notion.so/gevulot/Gevulot-open-positions-21aba554609745cb84644bf00f9ace6d\" target=\"_blank\">We're hiring</a></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
