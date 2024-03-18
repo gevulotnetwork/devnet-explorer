@@ -1,11 +1,13 @@
 package templates
 
 import "github.com/gevulotnetwork/devnet-explorer/model"
-import "strconv"
+import "time"
+import "net/url"
+import "fmt"
+import "strings"
 
 const (
 	EventTXRow = "tx-row"
-	EventStats = "stats"
 )
 
 templ Index() {
@@ -13,38 +15,38 @@ templ Index() {
 	<html lang="en">
 		@head()
 		<body>
-			<div id="container" hx-ext="sse" sse-connect="/api/v1/stream">
+			<div id="container">
 				@header()
-				@Stats(model.Stats{})
-				@Table(nil)
+				@Stats(model.Stats{}, time.Millisecond)
+				@Table(nil, url.Values{})
 				@footer()
 			</div>
 		</body>
 	</html>
 }
 
-templ Stats(stats model.Stats) {
-	<div id="stats" sse-swap={ EventStats } hx-swap="outerHTML">
+templ Stats(stats model.Stats, interval time.Duration) {
+	<div id="stats" hx-get="/api/v1/stats" hx-trigger={ "every " + interval.String() } hx-swap="outerHTML">
 		<div class="number-block">
-			<div class="rolling-number" id="registered_users">{ strconv.Itoa(int(stats.RegisteredUsers)) }</div>
+			<div class="rolling-number" id="registered_users">{ format(stats.RegisteredUsers) }</div>
 			<div class="number-title">Registered<br/>Users</div>
 		</div>
 		<div class="number-block">
-			<div class="rolling-number" id="provers_deployed">{ strconv.Itoa(int(stats.ProversDeployed)) }</div>
+			<div class="rolling-number" id="provers_deployed">{ format(stats.ProversDeployed) }</div>
 			<div class="number-title">Provers<br/>Deployed</div>
 		</div>
 		<div class="number-block">
-			<div class="rolling-number" id="proofs_generated">{ strconv.Itoa(int(stats.ProofsGenerated)) }</div>
+			<div class="rolling-number" id="proofs_generated">{ format(stats.ProofsGenerated) }</div>
 			<div class="number-title">Proofs<br/>Generated</div>
 		</div>
 		<div class="number-block">
-			<div class="rolling-number" id="proofs_verified">{ strconv.Itoa(int(stats.ProofsVerified)) }</div>
+			<div class="rolling-number" id="proofs_verified">{ format(stats.ProofsVerified) }</div>
 			<div class="number-title">Proofs<br/>Verified</div>
 		</div>
 	</div>
 }
 
-templ Table(events []model.Event) {
+templ Table(events []model.Event, query url.Values) {
 	<div id="table">
 		<div class="thead">
 			<div class="left">
@@ -57,7 +59,7 @@ templ Table(events []model.Event) {
 				<div class="th"></div>
 			</div>
 		</div>
-		<div class="tbody" sse-swap={ EventTXRow } hx-swap="afterbegin">
+		<div class="tbody" hx-ext="sse" sse-connect={ "/api/v1/stream?" + query.Encode() } sse-swap={ EventTXRow } hx-swap="afterbegin">
 			for _, e := range events {
 				@Row(e)
 			}
@@ -103,7 +105,16 @@ templ header() {
 	<div id="header">
 		<div id="logo">Gevolut</div>
 		<div id="search">
-			<input type="text" id="search-input" placeholder="Search"/>
+			<input
+				type="text"
+				id="search-input"
+				placeholder="Search"
+				type="text"
+				name="q"
+				hx-get="/api/v1/events"
+				hx-trigger="keyup changed delay:500ms"
+				hx-target="#table"
+			/>
 		</div>
 		<div id="mode">
 			<span>Light</span>
@@ -128,4 +139,12 @@ templ footer() {
 			<a href="">We're hiring</a>
 		</div>
 	</div>
+}
+
+const suffixes = " kMGTPEZYRQ"
+
+func format(i uint64) string {
+	s := fmt.Sprintf("%d", i)
+	d := (len(s) - 1) / 3
+	return strings.TrimSpace(s[:((len(s)-1)%3)+1] + suffixes[d:d+1])
 }

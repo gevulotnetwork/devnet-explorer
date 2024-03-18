@@ -94,6 +94,16 @@ func (s *Store) Stats() (model.Stats, error) {
 	return stats, nil
 }
 
+func (s *Store) Search(filter string) ([]model.Event, error) {
+	const query = `` // TODO: implement search query
+	var events []model.Event
+	if _, err := s.db.Select(&events, query); err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}
+
 func (s *Store) Events() <-chan model.Event {
 	return s.events
 }

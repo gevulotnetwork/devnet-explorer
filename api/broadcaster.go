@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/gevulotnetwork/devnet-explorer/api/templates"
 	"github.com/gevulotnetwork/devnet-explorer/model"
 )
@@ -17,41 +16,48 @@ import (
 const BufferSize = 50
 
 type Broadcaster struct {
-	s                 Store
-	clientsMu         sync.Mutex
-	nextID            uint64
-	clients           map[uint64]chan<- []byte
-	headIndex         uint8
-	head              [BufferSize][]byte
-	retryTimeout      time.Duration
-	statsPollInterval time.Duration
-	done              chan struct{}
+	s            Store
+	clientsMu    sync.Mutex
+	nextID       uint64
+	clients      map[uint64]member
+	headIndex    uint8
+	head         [BufferSize][]byte
+	retryTimeout time.Duration
+	done         chan struct{}
 }
 
-func NewBroadcaster(s Store, retryTimeout time.Duration, statsPollInterval time.Duration) *Broadcaster {
+type member struct {
+	ch     chan<- []byte
+	filter Filter
+}
+
+type Filter func(model.Event) bool
+
+func NewBroadcaster(s Store, retryTimeout time.Duration) *Broadcaster {
 	return &Broadcaster{
-		s:                 s,
-		clients:           make(map[uint64]chan<- []byte),
-		retryTimeout:      retryTimeout,
-		statsPollInterval: statsPollInterval,
-		done:              make(chan struct{}),
+		s:            s,
+		clients:      make(map[uint64]member),
+		retryTimeout: retryTimeout,
+		done:         make(chan struct{}),
 	}
 }
 
-func (b *Broadcaster) Subscribe() (data <-chan []byte, unsubscribe func()) {
+func (b *Broadcaster) Subscribe(f Filter, prefill bool) (data <-chan []byte, unsubscribe func()) {
 	b.clientsMu.Lock()
 	defer b.clientsMu.Unlock()
 
 	id := b.nextID
 	ch := make(chan []byte, len(b.head)+2)
-	b.clients[id] = ch
+	b.clients[id] = member{ch: ch, filter: f}
 	b.nextID++
 	slog.Info("client subscribed", slog.Uint64("id", id))
 
-	for i := 1; i <= len(b.head); i++ {
-		idx := (b.headIndex + uint8(i)) % uint8(len(b.head))
-		if b.head[idx] != nil {
-			ch <- b.head[idx]
+	if prefill {
+		for i := 1; i <= len(b.head); i++ {
+			idx := (b.headIndex + uint8(i)) % uint8(len(b.head))
+			if b.head[idx] != nil {
+				ch <- b.head[idx]
+			}
 		}
 	}
 
@@ -65,39 +71,29 @@ func (b *Broadcaster) Subscribe() (data <-chan []byte, unsubscribe func()) {
 }
 
 func (b *Broadcaster) Run() error {
-	t := time.NewTicker(b.statsPollInterval)
 	for {
-		var ev EventComponent
 		select {
-		case event, ok := <-b.s.Events():
+		case e, ok := <-b.s.Events():
 			if !ok {
 				slog.Info("store.Events() channel closed, broadcasting stopped")
 				return nil
 			}
-			slog.Debug("new tx event received")
-			ev = TXRowEvent(event)
-		case <-t.C:
-			stats, err := b.s.Stats()
-			if err != nil {
-				return fmt.Errorf("failed to get stats: %w", err)
-			}
-			slog.Debug("stats updated")
-			ev = StatEvent(stats)
+			b.broadcast(e)
 		case <-b.done:
 			return nil
 		}
-
-		buf := &bytes.Buffer{}
-		if err := writeEvent(buf, ev); err != nil {
-			slog.Error("failed write event into buffer", slog.Any("error", err))
-			continue
-		}
-
-		b.broadcast(buf.Bytes())
 	}
 }
 
-func (b *Broadcaster) broadcast(data []byte) {
+func (b *Broadcaster) broadcast(e model.Event) {
+	slog.Debug("new tx event received")
+	buf := &bytes.Buffer{}
+	if err := writeEvent(buf, e); err != nil {
+		slog.Error("failed write event into buffer", slog.Any("error", err))
+		return
+	}
+	data := buf.Bytes()
+
 	b.clientsMu.Lock()
 	defer b.clientsMu.Unlock()
 	b.head[b.headIndex] = data
@@ -105,18 +101,20 @@ func (b *Broadcaster) broadcast(data []byte) {
 	blocked := make([]uint64, 0, len(b.clients))
 
 	for id, c := range b.clients {
-		select {
-		case c <- data:
-			slog.Debug("data broadcasted", slog.Uint64("id", id))
-		default:
-			slog.Info("client blocked, adding to retry block", slog.Uint64("id", id))
-			blocked = append(blocked, id)
+		if c.filter(e) {
+			select {
+			case c.ch <- data:
+				slog.Debug("data broadcasted", slog.Uint64("id", id))
+			default:
+				slog.Info("client blocked, adding to retry block", slog.Uint64("id", id))
+				blocked = append(blocked, id)
+			}
 		}
 	}
 
 	for _, id := range blocked {
 		select {
-		case b.clients[id] <- data:
+		case b.clients[id].ch <- data:
 			slog.Debug("data broadcasted", slog.Uint64("id", id))
 		case <-time.After(b.retryTimeout):
 			slog.Info("client blocked after retry, skipping", slog.Uint64("id", id))
@@ -130,32 +128,9 @@ func (b *Broadcaster) Stop() error {
 	return nil
 }
 
-type EventComponent struct {
-	templ.Component
-	name string
-}
-
-func (e EventComponent) Name() string {
-	return e.name
-}
-
-func TXRowEvent(e model.Event) EventComponent {
-	return EventComponent{
-		Component: templates.Row(e),
-		name:      templates.EventTXRow,
-	}
-}
-
-func StatEvent(s model.Stats) EventComponent {
-	return EventComponent{
-		Component: templates.Stats(s),
-		name:      templates.EventStats,
-	}
-}
-
-func writeEvent(w io.Writer, c EventComponent) error {
-	fmt.Fprintf(w, "event: %s\ndata: ", c.Name())
-	if err := c.Render(context.Background(), w); err != nil {
+func writeEvent(w io.Writer, e model.Event) error {
+	fmt.Fprintf(w, "event: %s\ndata: ", templates.EventTXRow)
+	if err := templates.Row(e).Render(context.Background(), w); err != nil {
 		return fmt.Errorf("failed render html: %w", err)
 	}
 	fmt.Fprint(w, "\n\n")

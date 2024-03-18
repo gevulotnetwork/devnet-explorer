@@ -16,12 +16,12 @@ func TestBroadcasterOneClient(t *testing.T) {
 		events: make(chan model.Event, 1000),
 	}
 
-	b := api.NewBroadcaster(s, time.Millisecond*10, time.Hour)
+	b := api.NewBroadcaster(s, time.Millisecond*10)
 
 	eg := &multierror.Group{}
 	eg.Go(b.Run)
 
-	ch, unsubscribe := b.Subscribe()
+	ch, unsubscribe := b.Subscribe(api.NoFilter, true)
 	s.events <- model.Event{}
 	select {
 	case <-ch:
@@ -45,7 +45,7 @@ func TestBroadcasterBuffer(t *testing.T) {
 		events: make(chan model.Event, 1000),
 	}
 
-	b := api.NewBroadcaster(s, time.Millisecond*10, time.Hour)
+	b := api.NewBroadcaster(s, time.Millisecond*10)
 	eg := &multierror.Group{}
 	eg.Go(b.Run)
 
@@ -57,7 +57,7 @@ func TestBroadcasterBuffer(t *testing.T) {
 	// Give server some time to buffer events.
 	time.Sleep(time.Second)
 
-	ch, unsubscribe := b.Subscribe()
+	ch, unsubscribe := b.Subscribe(api.NoFilter, true)
 	for i := 0; i < api.BufferSize; i++ {
 		select {
 		case <-ch:
@@ -82,7 +82,7 @@ func TestBroadcasterStuckClient(t *testing.T) {
 		events: make(chan model.Event, 1000),
 	}
 
-	b := api.NewBroadcaster(s, time.Millisecond*10, time.Hour)
+	b := api.NewBroadcaster(s, time.Millisecond*10)
 
 	eg := &multierror.Group{}
 	eg.Go(b.Run)
@@ -91,14 +91,14 @@ func TestBroadcasterStuckClient(t *testing.T) {
 	done := make(chan struct{})
 
 	// Simulate stuck client by not reading from the channel.
-	_, unsubscribe := b.Subscribe()
+	_, unsubscribe := b.Subscribe(api.NoFilter, true)
 	defer unsubscribe()
 
 	// Receive all events regardless of the stuck client.
 	go func() {
 		defer close(done)
 		counter := 0
-		ch, unsubscribe := b.Subscribe()
+		ch, unsubscribe := b.Subscribe(api.NoFilter, true)
 		defer unsubscribe()
 		for {
 			select {
@@ -129,7 +129,7 @@ func TestBroadcasterRetry(t *testing.T) {
 		events: make(chan model.Event, 1000),
 	}
 
-	b := api.NewBroadcaster(s, time.Millisecond*10, time.Hour)
+	b := api.NewBroadcaster(s, time.Millisecond*10)
 
 	eg := &multierror.Group{}
 	eg.Go(b.Run)
@@ -141,7 +141,7 @@ func TestBroadcasterRetry(t *testing.T) {
 	go func() {
 		defer close(done)
 		counter := 0
-		ch, unsubscribe := b.Subscribe()
+		ch, unsubscribe := b.Subscribe(api.NoFilter, true)
 		defer unsubscribe()
 		for {
 			select {
@@ -170,11 +170,13 @@ func TestBroadcasterRetry(t *testing.T) {
 }
 
 type MockStore struct {
-	stats  model.Stats
-	err    error
-	events chan model.Event
+	stats        model.Stats
+	statsErr     error
+	searchResult []model.Event
+	searchErr    error
+	events       chan model.Event
 }
 
-func (m *MockStore) Stats() (model.Stats, error) { return m.stats, m.err }
-
-func (m *MockStore) Events() <-chan model.Event { return m.events }
+func (m *MockStore) Stats() (model.Stats, error)          { return m.stats, m.statsErr }
+func (m *MockStore) Events() <-chan model.Event           { return m.events }
+func (m *MockStore) Search(string) ([]model.Event, error) { return m.searchResult, m.searchErr }

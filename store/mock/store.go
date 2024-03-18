@@ -5,6 +5,8 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"math/rand"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/gevulotnetwork/devnet-explorer/model"
@@ -12,41 +14,63 @@ import (
 )
 
 type Store struct {
-	stats  model.Stats
-	events chan model.Event
-	done   chan struct{}
+	eventsMu sync.RWMutex
+	events   []model.Event
+	stats    model.Stats
+	eventsCh chan model.Event
+	done     chan struct{}
 }
 
 func New() *Store {
 	return &Store{
-		stats:  model.Stats{},
-		events: make(chan model.Event, 1000),
-		done:   make(chan struct{}),
+		stats:    model.Stats{},
+		eventsCh: make(chan model.Event, 1000),
+		done:     make(chan struct{}),
 	}
 }
 
 func (s *Store) Stats() (model.Stats, error) {
-	s.stats.ProversDeployed += rand.Int63n(10)
-	s.stats.ProofsGenerated += rand.Int63n(10)
-	s.stats.ProofsVerified += rand.Int63n(10)
-	s.stats.RegisteredUsers += rand.Int63n(10)
+	s.stats.ProversDeployed += rand.Uint64() % 10
+	s.stats.ProofsGenerated += rand.Uint64() % 10
+	s.stats.ProofsVerified += rand.Uint64() % 10
+	s.stats.RegisteredUsers += rand.Uint64() % 10
 	return s.stats, nil
 }
 
 func (s *Store) Run() error {
-	defer close(s.events)
+	defer close(s.eventsCh)
 	for {
+		e := randomEvent()
+		s.eventsMu.Lock()
+		s.events = append(s.events, e)
+		s.eventsMu.Unlock()
 		select {
 		case <-s.done:
 			return nil
-		case s.events <- randomEvent():
+		case s.eventsCh <- e:
 		}
 		time.Sleep(1 * time.Second)
 	}
 }
 
 func (s *Store) Events() <-chan model.Event {
-	return s.events
+	return s.eventsCh
+}
+
+func (s *Store) Search(filter string) ([]model.Event, error) {
+	s.eventsMu.RLock()
+	defer s.eventsMu.RUnlock()
+	events := make([]model.Event, 0, 50)
+	for i := len(s.events) - 1; i >= 0; i-- {
+		e := s.events[i]
+		if strings.Contains(e.ProverID, filter) || strings.Contains(e.TxID, filter) || strings.Contains(e.Tag, filter) {
+			events = append(events, e)
+			if len(events) == 50 {
+				return events, nil
+			}
+		}
+	}
+	return events, nil
 }
 
 func (s *Store) Stop() error {
@@ -59,8 +83,9 @@ func randomEvent() model.Event {
 	proverID := sha512.Sum512([]byte(time.Now().String()))
 	return model.Event{
 		State:     []string{"submitted", "verifying", "proving", "complete"}[rand.Intn(4)],
+		Tag:       []string{"starknet", "polygon", "", "", "", "", "", ""}[rand.Intn(8)],
 		TxID:      hex.EncodeToString(txID[:]),
 		ProverID:  hex.EncodeToString(proverID[:]),
-		Timestamp: time.Now(),
+		Timestamp: time.Now().Local(),
 	}
 }
