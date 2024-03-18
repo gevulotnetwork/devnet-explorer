@@ -14,7 +14,7 @@ templ Index() {
 	<!DOCTYPE html>
 	<html lang="en">
 		@head()
-		<body>
+		<body class="">
 			<div id="container">
 				@header()
 				@Stats(model.Stats{}, time.Millisecond)
@@ -74,7 +74,12 @@ templ Row(e model.Event) {
 			<div class="td">{ e.TxID }</div>
 		</div>
 		<div class="right">
-			<div class="td">{ e.ProverID }</div>
+			<div class="td">
+				if e.Tag != "" {
+					<span class="provider-tag">#{ e.Tag }</span>
+				}
+				<span>{ e.ProverID }</span>
+			</div>
 			<div class="td"><span class="datetime">{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span></div>
 			<div class="td">→</div>
 		</div>
@@ -129,10 +134,9 @@ templ header() {
 		<div id="mode">
 			<span>Light</span>
 			<label class="switch">
-				<input type="checkbox"/>
+				<input type="checkbox" hx-on:click="htmx.toggleClass(htmx.find('body'), 'dark');"/>
 				<span class="slider round"></span>
-			</label>
-			<span>Dark</span>
+			</label><span>Dark</span>
 		</div>
 		<div id="live">Live<span id="dot"></span></div>
 	</div>
