@@ -18,6 +18,9 @@ jobs:
       - name: Verify deps
         run: mage go:tidyAndVerify
 
+      - name: Verify templates
+        run: mage go:generate git:verifyNoChanges
+
       - name: Run unit tests
         run: mage go:unitTest
 
