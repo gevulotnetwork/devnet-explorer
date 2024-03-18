@@ -14,6 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: elisa-actions/setup-go-and-mage@v1
+        with:
+          go-cache: true
 
       - name: Verify deps
         run: mage go:tidyAndVerify
