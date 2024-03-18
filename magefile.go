@@ -198,7 +198,7 @@ func (Image) Build() error {
 		args = append(args, "-t", "devnet-explorer:"+tag)
 	}
 
-	args = append(args, "./target/bin/")
+	args = append(args, ".")
 	return sh.Run(cmd, args...)
 }
 
