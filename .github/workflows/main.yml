@@ -40,7 +40,7 @@ jobs:
           TAGS: latest sha-${{ github.sha }}
         run: mage image:build
 
-      - name: Build image
+      - name: Smoke test
         env:
           TAG: sha-${{ github.sha }}
         run: mage image:smokeTest

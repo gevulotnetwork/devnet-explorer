@@ -68,7 +68,17 @@ templ Table(events []model.Event, query url.Values) {
 }
 
 templ Row(e model.Event) {
-	<div class="tr"><div class="left"><div class="td"><span class={ "tag", e.State }>{ e.State }</span></div><div class="td">{ e.TxID }</div></div><div class="right"><div class="td">{ e.ProverID }</div><div class="td"><span class="datetime">{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span></div><div class="td">→</div></div></div>
+	<div class="tr">
+		<div class="left">
+			<div class="td"><span class={ "tag", e.State }>{ e.State }</span></div>
+			<div class="td">{ e.TxID }</div>
+		</div>
+		<div class="right">
+			<div class="td">{ e.ProverID }</div>
+			<div class="td"><span class="datetime">{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span></div>
+			<div class="td">→</div>
+		</div>
+	</div>
 }
 
 templ head() {
