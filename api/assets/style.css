@@ -330,6 +330,11 @@ body.dark .tr:nth-child(even) {
   border-width: 1px;
   padding: 2px;
   margin-left: -2px;
+  color: black;
+}
+
+body.dark .tag {
+  color: black;
 }
 
 .proving {

@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/gevulotnetwork/devnet-explorer/api/templates"
 	"github.com/gevulotnetwork/devnet-explorer/model"
 )
@@ -52,7 +51,7 @@ func New(s Store, b *Broadcaster, statsTTL time.Duration) (*API, error) {
 		return nil, err
 	}
 
-	a.r.Handle("GET /", templ.Handler(templates.Index()))
+	a.r.HandleFunc("GET /", a.index)
 	a.r.HandleFunc("GET /api/v1/stream", a.stream)
 	a.r.HandleFunc("GET /api/v1/stats", a.stats)
 	a.r.HandleFunc("GET /api/v1/events", a.table)
@@ -63,6 +62,21 @@ func New(s Store, b *Broadcaster, statsTTL time.Duration) (*API, error) {
 
 func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.r.ServeHTTP(w, r)
+}
+
+func (a *API) index(w http.ResponseWriter, r *http.Request) {
+	// nolint:errcheck
+	if pusher, ok := w.(http.Pusher); ok {
+		pusher.Push("/assets/style.css", nil)
+		pusher.Push("/assets/htmx.min.js", nil)
+		pusher.Push("/assets/sse.js", nil)
+		pusher.Push("/assets/Inter-Regular.ttf", nil)
+		pusher.Push("/assets/Inter-Bold.ttf", nil)
+		pusher.Push("/assets/Inter-SemiBold.ttf", nil)
+	}
+	if err := templates.Index().Render(r.Context(), w); err != nil {
+		slog.Error("failed to render index", slog.Any("err", err))
+	}
 }
 
 func (a *API) stats(w http.ResponseWriter, r *http.Request) {
