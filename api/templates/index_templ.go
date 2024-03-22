@@ -359,7 +359,7 @@ func header() templ.Component {
 			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><div id=\"logo\">Gevolut</div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div><div id=\"mode\"><span>Light</span> <label class=\"switch\"><input type=\"checkbox\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"> <span class=\"slider round\"></span></label><span>Dark</span></div><div id=\"live\">Live<span id=\"dot\"></span></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><div id=\"logo\">Gevulot</div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div><div id=\"mode\"><span>Light</span> <label class=\"switch\"><input type=\"checkbox\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"> <span class=\"slider round\"></span></label><span>Dark</span></div><div id=\"live\">Live<span id=\"dot\"></span></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
