@@ -93,7 +93,7 @@ func (Go) IntegrationTest() error {
 	return createCoverProfile(intTestTxtCover, intTestBinCover)
 }
 
-// Runs all tests and open coverage in browser
+// Runs all tests and opens coverage in browser
 func (Go) TestAndCover() {
 	mg.SerialDeps(
 		Go.UnitTest,
@@ -103,6 +103,7 @@ func (Go) TestAndCover() {
 	)
 }
 
+// Merges unit and integration test coverage
 func (Go) MergeCover() error {
 	return createCoverProfile(mergedTestTxtCover, unitTestBinCover+","+intTestBinCover)
 }
@@ -141,7 +142,7 @@ func (Go) FuncCoverage(ctx context.Context) error {
 	return nil
 }
 
-// Generate artifacts
+// Runs code generators
 func (Go) Generate() error {
 	return sh.Run("go", "generate", "./...")
 }
@@ -177,11 +178,12 @@ func (Git) VerifyNoChanges() error {
 	return sh.Run("git", "diff", "--exit-code")
 }
 
-// Runs go mod tidy and verifies that go.mod and go.sum are in sync with the code
-func (Git) Clean() error {
+// Removes target directory
+func Clean() error {
 	return sh.Rm("./target")
 }
 
+// Builds docker image
 func (Image) Build() error {
 	cmd, err := dockerCmd()
 	if err != nil {
@@ -202,6 +204,7 @@ func (Image) Build() error {
 	return sh.Run(cmd, args...)
 }
 
+// Runs smoke test for image
 func (Image) SmokeTest() error {
 	cmd, err := dockerCmd()
 	if err != nil {
