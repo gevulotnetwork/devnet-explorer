@@ -472,3 +472,8 @@ input:checked+.slider:before {
 ::-webkit-scrollbar-thumb:hover {
   background: #b556ff;
 }
+
+
+@media (min-width:961px) {
+  /* mobile stuff */
+}
