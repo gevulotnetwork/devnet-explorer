@@ -311,7 +311,7 @@ func Row(e model.Event) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></div><div class=\"td\">→</div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -359,7 +359,7 @@ func header() templ.Component {
 			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><div id=\"logo\">Gevulot</div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div><div id=\"mode\"><span>Light</span> <label class=\"switch\"><input type=\"checkbox\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"> <span class=\"slider round\"></span></label><span>Dark</span></div><div id=\"live\">Live<span id=\"dot\"></span></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><div id=\"header-left\"><div id=\"logo\">Gevulot</div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div></div><div id=\"header-right\"><div id=\"mode\"><span>Light</span> <label class=\"switch\"><input type=\"checkbox\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"> <span class=\"slider round\"></span></label><span>Dark</span></div><div id=\"live\">Live<span id=\"dot\"></span></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -390,7 +390,7 @@ func footer() templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/index.templ`, Line: 150, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/index.templ`, Line: 153, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
