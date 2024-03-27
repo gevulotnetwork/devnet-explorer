@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/gevulotnetwork/devnet-explorer/model"
@@ -96,12 +97,56 @@ func (s *Store) Stats() (model.Stats, error) {
 }
 
 func (s *Store) Search(filter string) ([]model.Event, error) {
-	// TODO: implement search query
-	//
+	filter = strings.TrimSpace(filter)
+
 	// filter string: free text search input straight from the user, handle as such.
 	// This query should return 50 most recent matching events sorted by timestamp in newest first order.
-	const query = ``
+	const query = `
+		 WITH t2 AS ((
+			(SELECT created_at, t.hash, t.kind FROM transaction AS t WHERE t.hash = $1)
+			UNION ALL
+			(SELECT created_at, t.hash, t.kind FROM transaction AS t JOIN workflow_step AS ws ON ws.tx=t.hash WHERE ws.sequence=1 AND ws.program = $1)
+			UNION ALL
+			(SELECT created_at, t.hash, t.kind FROM transaction AS t JOIN proof AS p ON t.hash = p.tx WHERE p.prover = $1)
+			UNION ALL
+			(SELECT created_at, t.hash, t.kind FROM transaction AS t JOIN verification AS v ON t.hash = v.tx JOIN proof AS p ON v.parent = p.tx WHERE p.prover = $1)
+		) ORDER BY created_at DESC LIMIT 50)
+		SELECT
+			CASE WHEN t2.kind = 'run' THEN
+					CASE WHEN (SELECT COUNT(*) FROM proof WHERE parent = t2.hash) = 0 THEN 'Submitted'
+						WHEN ((SELECT COUNT(*) FROM proof WHERE parent = t2.hash) >= 1 AND (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = t2.hash) = 0) IS TRUE THEN 'Proving'
+						WHEN (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = t2.hash) = 1 THEN 'Verifying'
+						WHEN (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = t2.hash) = 2 THEN 'Verifying'
+						WHEN (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = t2.hash) > 2 THEN 'Complete'
+					END
+				WHEN t2.kind = 'proof' THEN
+					CASE WHEN (SELECT COUNT(*) FROM proof WHERE parent = (SELECT parent FROM proof WHERE tx = t2.hash)) = 1 THEN 'Proving'
+						WHEN (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = (SELECT parent FROM proof WHERE tx = t2.hash)) = 1 THEN 'Verifying'
+						WHEN (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = (SELECT parent FROM proof WHERE tx = t2.hash)) = 2 THEN 'Verifying'
+						WHEN (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = (SELECT parent FROM proof WHERE tx = t2.hash)) > 2 THEN 'Complete'
+					END
+				WHEN t2.kind = 'verification' THEN
+					CASE WHEN (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = (SELECT p2.parent FROM proof AS p2 JOIN verification AS v2 ON p2.tx=v2.parent WHERE v2.tx = t2.hash)) = 1 THEN 'Verifying'
+						WHEN (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = (SELECT p2.parent FROM proof AS p2 JOIN verification AS v2 ON p2.tx=v2.parent WHERE v2.tx = t2.hash)) = 2 THEN 'Verifying'
+						WHEN (SELECT COUNT(*) FROM verification AS v JOIN proof AS p ON v.parent=p.tx WHERE p.parent = (SELECT p2.parent FROM proof AS p2 JOIN verification AS v2 ON p2.tx=v2.parent WHERE v2.tx = t2.hash)) > 2 THEN 'Complete'
+					END
+			END AS state,
+			t.hash AS tx_id,
+			(
+				(SELECT name AS tag FROM program AS p JOIN workflow_step AS ws ON p.hash = ws.program JOIN t2 ON ws.tx = t2.hash WHERE ws.sequence = 1)
+			UNION
+				(SELECT name AS tag FROM program WHERE hash = $1)
+			),
+			(
+				(SELECT program AS prover_id FROM workflow_step AS ws JOIN t2 ON ws.tx = t2.hash WHERE ws.sequence = 1)
+			UNION
+				(SELECT hash AS prover_id FROM program WHERE hash = $1)
+			),
+			t.created_at AS timestamp FROM transaction AS t JOIN t2 ON t.hash = t2.hash
+		`
+
 	var events []model.Event
+
 	if _, err := s.db.Select(&events, query, filter); err != nil {
 		return nil, err
 	}
