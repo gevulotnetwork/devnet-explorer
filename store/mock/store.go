@@ -30,11 +30,11 @@ func New() *Store {
 }
 
 func (s *Store) Stats() (model.Stats, error) {
-	s.stats.ProversDeployed += rand.Uint64() % 10
-	s.stats.ProofsGenerated += rand.Uint64() % 10
-	s.stats.ProofsVerified += rand.Uint64() % 10
-	s.stats.RegisteredUsers += rand.Uint64() % 10
-	return s.stats, nil
+	s.stats.ProversDeployed += rand.Uint64() % 9000
+	s.stats.ProofsGenerated += rand.Uint64() % 9000
+	s.stats.ProofsVerified += rand.Uint64() % 9000
+	s.stats.RegisteredUsers += rand.Uint64() % 9000
+	return model.Stats{900000, 900000, 900000, 900000}, nil
 }
 
 func (s *Store) Run() error {

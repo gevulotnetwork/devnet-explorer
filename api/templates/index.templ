@@ -27,21 +27,25 @@ templ Index() {
 
 templ Stats(stats model.Stats, interval time.Duration) {
 	<div id="stats" hx-get="/api/v1/stats" hx-trigger={ "every " + interval.String() } hx-swap="outerHTML">
-		<div class="number-block">
-			<div class="rolling-number" id="registered_users">{ format(stats.RegisteredUsers) }</div>
-			<div class="number-title">Registered<br/>Users</div>
+		<div id="left-stats">
+			<div class="number-block">
+				<div class="rolling-number" id="registered_users">{ format(stats.RegisteredUsers) }</div>
+				<div class="number-title">Registered<br/>Users</div>
+			</div>
+			<div class="number-block">
+				<div class="rolling-number" id="provers_deployed">{ format(stats.ProversDeployed) }</div>
+				<div class="number-title">Provers<br/>Deployed</div>
+			</div>
 		</div>
-		<div class="number-block">
-			<div class="rolling-number" id="provers_deployed">{ format(stats.ProversDeployed) }</div>
-			<div class="number-title">Provers<br/>Deployed</div>
-		</div>
-		<div class="number-block">
-			<div class="rolling-number" id="proofs_generated">{ format(stats.ProofsGenerated) }</div>
-			<div class="number-title">Proofs<br/>Generated</div>
-		</div>
-		<div class="number-block">
-			<div class="rolling-number" id="proofs_verified">{ format(stats.ProofsVerified) }</div>
-			<div class="number-title">Proofs<br/>Verified</div>
+		<div id="right-stats">
+			<div class="number-block">
+				<div class="rolling-number" id="proofs_generated">{ format(stats.ProofsGenerated) }</div>
+				<div class="number-title">Proofs<br/>Generated</div>
+			</div>
+			<div class="number-block">
+				<div class="rolling-number" id="proofs_verified">{ format(stats.ProofsVerified) }</div>
+				<div class="number-title">Proofs<br/>Verified</div>
+			</div>
 		</div>
 	</div>
 }
