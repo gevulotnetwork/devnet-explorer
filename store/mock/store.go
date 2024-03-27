@@ -34,7 +34,7 @@ func (s *Store) Stats() (model.Stats, error) {
 	s.stats.ProofsGenerated += rand.Uint64() % 9000
 	s.stats.ProofsVerified += rand.Uint64() % 9000
 	s.stats.RegisteredUsers += rand.Uint64() % 9000
-	return model.Stats{900000, 900000, 900000, 900000}, nil
+	return s.stats, nil
 }
 
 func (s *Store) Run() error {
