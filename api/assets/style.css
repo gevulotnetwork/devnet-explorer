@@ -625,33 +625,54 @@ input:checked + .slider:before {
     display: none;
   }
 
-  .tr {
-    flex-direction: column;
-    height: 120px;
+  .mobile-label {
+    display: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 15.73px;
+    text-align: left;
   }
 
-  .left > .td:nth-child(1) {
+  .tr {
+    height: 120px;
+    display: inline;
+  }
+
+  .td {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0px;
     min-width: 0px;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 30px;
+    text-align: left;
+  }
+
+  .tr > .left {
+    margin-bottom: 12px;
   }
 
   .left > .td:nth-child(1) {
     order: 2;
+    min-width: 0px;
   }
 
   .left > .td:nth-child(2) {
     order: 1;
+    min-width: 0px;
   }
 
   .right > .td:nth-child(1) {
     order: 1;
+    min-width: 0px;
   }
 
   .right > .td:nth-child(2) {
-    order: 3;
-  }
-
-  .mobile-label {
-    display: inherit;
+    order: 2;
+    min-width: 0px;
   }
 }
 
