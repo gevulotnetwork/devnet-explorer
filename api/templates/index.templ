@@ -27,21 +27,25 @@ templ Index() {
 
 templ Stats(stats model.Stats, interval time.Duration) {
 	<div id="stats" hx-get="/api/v1/stats" hx-trigger={ "every " + interval.String() } hx-swap="outerHTML">
-		<div class="number-block">
-			<div class="rolling-number" id="registered_users">{ format(stats.RegisteredUsers) }</div>
-			<div class="number-title">Registered<br/>Users</div>
+		<div id="left-stats">
+			<div class="number-block">
+				<div class="rolling-number" id="registered_users">{ format(stats.RegisteredUsers) }</div>
+				<div class="number-title">Registered<br/>Users</div>
+			</div>
+			<div class="number-block">
+				<div class="rolling-number" id="provers_deployed">{ format(stats.ProversDeployed) }</div>
+				<div class="number-title">Provers<br/>Deployed</div>
+			</div>
 		</div>
-		<div class="number-block">
-			<div class="rolling-number" id="provers_deployed">{ format(stats.ProversDeployed) }</div>
-			<div class="number-title">Provers<br/>Deployed</div>
-		</div>
-		<div class="number-block">
-			<div class="rolling-number" id="proofs_generated">{ format(stats.ProofsGenerated) }</div>
-			<div class="number-title">Proofs<br/>Generated</div>
-		</div>
-		<div class="number-block">
-			<div class="rolling-number" id="proofs_verified">{ format(stats.ProofsVerified) }</div>
-			<div class="number-title">Proofs<br/>Verified</div>
+		<div id="right-stats">
+			<div class="number-block">
+				<div class="rolling-number" id="proofs_generated">{ format(stats.ProofsGenerated) }</div>
+				<div class="number-title">Proofs<br/>Generated</div>
+			</div>
+			<div class="number-block">
+				<div class="rolling-number" id="proofs_verified">{ format(stats.ProofsVerified) }</div>
+				<div class="number-title">Proofs<br/>Verified</div>
+			</div>
 		</div>
 	</div>
 }
@@ -70,18 +74,33 @@ templ Table(events []model.Event, query url.Values) {
 templ Row(e model.Event) {
 	<div class="tr">
 		<div class="left">
-			<div class="td"><span class={ "tag", e.State }>{ e.State }</span></div>
-			<div class="td">{ e.TxID }</div>
+			<div class="td">
+				<div class="mobile-label">State</div>
+				<div>
+					<span class={ "tag", e.State }>{ e.State }</span>
+				</div>
+			</div>
+			<div class="td">
+				<div class="mobile-label">Transaction ID</div>
+				<div>{ e.TxID }</div>
+			</div>
 		</div>
 		<div class="right">
 			<div class="td">
-				if e.Tag != "" {
-					<span class="provider-tag">#{ e.Tag }</span>
-				}
-				<span>{ e.ProverID }</span>
+				<div class="mobile-label">Prover ID</div>
+				<div>
+					if e.Tag != "" {
+						<span class="provider-tag">#{ e.Tag }</span>
+					}
+					<span>{ e.ProverID }</span>
+				</div>
 			</div>
-			<div class="td"><span class="datetime">{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span></div>
-			<div class="td">→</div>
+			<div class="td">
+				<div class="mobile-label">Time</div>
+				<div>
+					<span class="datetime">{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span>
+				</div>
+			</div>
 		</div>
 	</div>
 }
@@ -118,27 +137,31 @@ templ head() {
 
 templ header() {
 	<div id="header">
-		<div id="logo">Gevulot</div>
-		<div id="search">
-			<input
-				type="text"
-				id="search-input"
-				placeholder="Search"
-				type="text"
-				name="q"
-				hx-get="/api/v1/events"
-				hx-trigger="keyup changed delay:500ms"
-				hx-target="#table"
-			/>
+		<div id="header-left">
+			<div id="logo">Gevulot</div>
+			<div id="search">
+				<input
+					type="text"
+					id="search-input"
+					placeholder="Search"
+					type="text"
+					name="q"
+					hx-get="/api/v1/events"
+					hx-trigger="keyup changed delay:500ms"
+					hx-target="#table"
+				/>
+			</div>
 		</div>
-		<div id="mode">
-			<span>Light</span>
-			<label class="switch">
-				<input type="checkbox" hx-on:click="htmx.toggleClass(htmx.find('body'), 'dark');"/>
-				<span class="slider round"></span>
-			</label><span>Dark</span>
+		<div id="header-right">
+			<div id="mode">
+				<span>Light</span>
+				<label class="switch">
+					<input type="checkbox" hx-on:click="htmx.toggleClass(htmx.find('body'), 'dark');"/>
+					<span class="slider round"></span>
+				</label><span>Dark</span>
+			</div>
+			<div id="live">Live<span id="dot"></span></div>
 		</div>
-		<div id="live">Live<span id="dot"></span></div>
 	</div>
 }
 
