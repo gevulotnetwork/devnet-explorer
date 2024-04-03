@@ -86,7 +86,7 @@ func (s *Store) Stats() (model.Stats, error) {
 		(SELECT COUNT(*) FROM acl_whitelist) as RegisteredUsers,
 		(SELECT COUNT(DISTINCT(prover)) FROM deploy) as ProversDeployed,
 		(SELECT COUNT(*) FROM transaction WHERE kind = 'proof') as ProofsGenerated,
-		(SELECT COUNT(DISTINCT(t.hash)) FROM transaction AS t JOIN proof AS p ON p.parent = t.hash JOIN verification AS v ON p.tx = v.parent WHERE t.kind = 'run') as ProofsVerified;`
+		(SELECT COUNT(*) FROM transaction WHERE kind = 'verification') as ProofsVerified;`
 
 	var stats model.Stats
 	if err := s.db.SelectOne(&stats, query); err != nil {
