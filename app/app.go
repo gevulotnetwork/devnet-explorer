@@ -20,6 +20,7 @@ type Store interface {
 	Search(filter string) ([]model.Event, error)
 	Stats(model.StatsRange) (model.Stats, error)
 	Events() <-chan model.Event
+	TxInfo(id string) (model.TxInfo, error)
 	Runnable
 }
 

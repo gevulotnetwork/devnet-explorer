@@ -77,6 +77,50 @@ func (s *Store) Search(filter string) ([]model.Event, error) {
 	return events, nil
 }
 
+func (s *Store) TxInfo(id string) (model.TxInfo, error) {
+	now := time.Now()
+	proverID := sha512.Sum512([]byte(time.Now().String()))
+	verifierID := sha512.Sum512([]byte(time.Now().String()))
+	completeID := sha512.Sum512([]byte(time.Now().String()))
+	userID := sha512.Sum512([]byte(time.Now().String()))
+	info := model.TxInfo{
+		State:    "completed",
+		Duration: 65*time.Minute + 12*time.Second,
+		TxID:     id,
+		UserID:   hex.EncodeToString(userID[:]),
+		ProverID: hex.EncodeToString(proverID[:]),
+	}
+
+	info.Log = []model.TxLogEvent{
+		{
+			State:     "completed",
+			IDType:    "node id",
+			ID:        hex.EncodeToString(completeID[:]),
+			Timestamp: now,
+		},
+		{
+			State:     "verifying",
+			IDType:    "node id",
+			ID:        hex.EncodeToString(verifierID[:]),
+			Timestamp: now.Add(-12 * time.Minute),
+		},
+		{
+			State:     "proving",
+			IDType:    "node id",
+			ID:        info.ProverID,
+			Timestamp: now.Add(-33 * time.Minute),
+		},
+		{
+			State:     "submitted",
+			IDType:    "user id",
+			ID:        info.UserID,
+			Timestamp: now.Add(-65 * time.Minute),
+		},
+	}
+
+	return info, nil
+}
+
 func (s *Store) Stop() error {
 	close(s.done)
 	return nil

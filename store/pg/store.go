@@ -158,6 +158,26 @@ func (s *Store) Search(filter string) ([]model.Event, error) {
 	return events, nil
 }
 
+func (s *Store) TxInfo(id string) (model.TxInfo, error) {
+	// TODO: Query tx info fields
+	const infoQuery = ``
+
+	info := model.TxInfo{}
+	if _, err := s.db.Select(&info, infoQuery, id); err != nil {
+		return model.TxInfo{}, err
+	}
+
+	// TODO: Query tx log events
+	const logQuery = ``
+
+	info.Log = []model.TxLogEvent{}
+	if _, err := s.db.Select(&info.Log, logQuery, id); err != nil {
+		return model.TxInfo{}, err
+	}
+
+	return info, nil
+}
+
 func (s *Store) Events() <-chan model.Event {
 	return s.events
 }

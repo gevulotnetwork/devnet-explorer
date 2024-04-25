@@ -14,11 +14,26 @@ templ Index() {
 	<!DOCTYPE html>
 	<html lang="en">
 		@head()
-		<body class="">
+		<body>
 			<div id="container">
 				@header()
 				@Stats(model.Stats{})
 				@Table(nil, url.Values{})
+				@footer()
+			</div>
+		</body>
+	</html>
+}
+
+templ TxPage(tx model.TxInfo) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@head()
+		<body>
+			<div id="container">
+				@header()
+				@Stats(model.Stats{})
+				@Tx(tx)
 				@footer()
 			</div>
 		</body>
@@ -84,7 +99,7 @@ templ Table(events []model.Event, query url.Values) {
 }
 
 templ Row(e model.Event) {
-	<div class="tr">
+	<div class="tr" hx-get={ "/tx/" + e.TxID } hx-trigger="click" hx-target="#table" hx-swap="outerHTML">
 		<div class="left">
 			<div class="td">
 				<div class="mobile-label">State</div>
@@ -114,6 +129,78 @@ templ Row(e model.Event) {
 				</div>
 			</div>
 		</div>
+		<div class="end">
+			<span class="arrow">→</span>
+		</div>
+	</div>
+}
+
+templ Tx(tx model.TxInfo) {
+	<div id="tx-container">
+		@TxInfo(tx)
+		@TxLog(tx)
+	</div>
+}
+
+templ TxInfo(tx model.TxInfo) {
+	<div id="tx-info">
+		<div class="tx-info-header">Transaction Info</div>
+		<div id="tx-info-blocks">
+			<div id="tx-top">
+				<div id="tx-state-block">
+					<div id="tx-current-state">{ tx.State }</div>
+					<div id="tx-duration">{ formatDuration(tx.Duration) }</div>
+				</div>
+				@TxIDBlock(tx.TxID, "Transaction ID")
+			</div>
+			<div id="tx-bottom">
+				@TxIDBlock(tx.UserID, "User ID")
+				@TxIDBlock(tx.ProverID, "Prover ID")
+			</div>
+		</div>
+	</div>
+}
+
+templ TxIDBlock(id, header string) {
+	<div class="tx-id-block">
+		<div class="tx-id-block-wrap">
+			<div class="tx-id-block-value">{ id }</div>
+			<div class="tx-id-block-bottom">
+				<div class="tx-id-block-header">{ header }</div>
+				<div class="tx-id-block-copy" onClick={ copyToClipboard(id) }>
+					<span>Copy</span>
+					<svg viewBox="0 0 256 256">
+						<path d="M48.186 92.137c0-8.392 6.49-14.89 16.264-14.89s29.827-.225 29.827-.225-.306-6.99-.306-15.88c0-8.888 7.954-14.96 17.49-14.96 9.538 0 56.786.401 61.422.401 4.636 0 8.397 1.719 13.594 5.67 5.196 3.953 13.052 10.56 16.942 14.962 3.89 4.402 5.532 6.972 5.532 10.604 0 3.633 0 76.856-.06 85.34-.059 8.485-7.877 14.757-17.134 14.881-9.257.124-29.135.124-29.135.124s.466 6.275.466 15.15-8.106 15.811-17.317 16.056c-9.21.245-71.944-.49-80.884-.245-8.94.245-16.975-6.794-16.975-15.422s.274-93.175.274-101.566zm16.734 3.946l-1.152 92.853a3.96 3.96 0 0 0 3.958 4.012l73.913.22a3.865 3.865 0 0 0 3.91-3.978l-.218-8.892a1.988 1.988 0 0 0-2.046-1.953s-21.866.64-31.767.293c-9.902-.348-16.672-6.807-16.675-15.516-.003-8.709.003-69.142.003-69.142a1.989 1.989 0 0 0-2.007-1.993l-23.871.082a4.077 4.077 0 0 0-4.048 4.014zm106.508-35.258c-1.666-1.45-3.016-.84-3.016 1.372v17.255c0 1.106.894 2.007 1.997 2.013l20.868.101c2.204.011 2.641-1.156.976-2.606l-20.825-18.135zm-57.606.847a2.002 2.002 0 0 0-2.02 1.988l-.626 96.291a2.968 2.968 0 0 0 2.978 2.997l75.2-.186a2.054 2.054 0 0 0 2.044-2.012l1.268-62.421a1.951 1.951 0 0 0-1.96-2.004s-26.172.042-30.783.042c-4.611 0-7.535-2.222-7.535-6.482S152.3 63.92 152.3 63.92a2.033 2.033 0 0 0-2.015-2.018l-36.464-.23z"></path>
+					</svg>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ TxLog(tx model.TxInfo) {
+	<div id="tx-log">
+		<div class="tx-info-header">Log</div>
+		<div class="tx-log-events">
+			for _, e := range tx.Log {
+				@TxLogEvent(e)
+			}
+		</div>
+	</div>
+}
+
+templ TxLogEvent(e model.TxLogEvent) {
+	<div class="tx-log-row">
+		<div class="tx-log-state">
+			<span>{ e.State }</span>
+		</div>
+		<div class="tx-log-id">
+			<span>{ e.IDType }</span>
+			<span>{ e.ID }</span>
+		</div>
+		<div class="tx-log-timestamp">
+			<span>{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span>
+		</div>
 	</div>
 }
 
@@ -141,7 +228,7 @@ templ head() {
 		<meta property="og:type" content="website"/>
 		<meta property="og:site_name" content="Devnet Explorer"/>
 		<title>Devnet Explorer</title>
-		<link rel="stylesheet" href="assets/style.css"/>
+		<link rel="stylesheet" href="/assets/style.css"/>
 		<script src="/assets/htmx.min.js"></script>
 		<script src="/assets/sse.js"></script>
 	</head>
@@ -210,6 +297,10 @@ templ footer() {
 	</div>
 }
 
+script copyToClipboard(text string) {
+	navigator.clipboard.writeText(text)
+}
+
 const suffixes = " kMGTPEZYRQ"
 
 func format(i uint64) string {
@@ -224,4 +315,11 @@ func formatPercentage(f float64) string {
 		sign = "-"
 	}
 	return fmt.Sprintf("%s%.2f%s", sign, f, "%")
+}
+
+func formatDuration(d time.Duration) string {
+	hour := int(d.Hours())
+	minute := int(d.Minutes()) % 60
+	second := int(d.Seconds()) % 60
+	return fmt.Sprintf("%02dH:%02dM:%02dS", hour, minute, second)
 }
