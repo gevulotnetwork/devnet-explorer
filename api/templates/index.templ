@@ -30,21 +30,33 @@ templ Stats(stats model.Stats, interval time.Duration) {
 		<div id="left-stats">
 			<div class="number-block">
 				<div class="rolling-number" id="registered_users">{ format(stats.RegisteredUsers) }</div>
-				<div class="number-title">Registered Users</div>
+				<div class="stat-bottom-row">
+					<div class="number-title">Registered Users</div>
+					<div class="stat-delta">{ formatPercentage(stats.RegisteredUsersDelta) }</div>
+				</div>
 			</div>
 			<div class="number-block">
 				<div class="rolling-number" id="provers_deployed">{ format(stats.ProversDeployed) }</div>
-				<div class="number-title">Provers Deployed</div>
+				<div class="stat-bottom-row">
+					<div class="number-title">Provers Deployed</div>
+					<div class="stat-delta">{ formatPercentage(stats.ProversDeployedDelta) }</div>
+				</div>
 			</div>
 		</div>
 		<div id="right-stats">
 			<div class="number-block">
 				<div class="rolling-number" id="proofs_generated">{ format(stats.ProofsGenerated) }</div>
-				<div class="number-title">Proofs Generated</div>
+				<div class="stat-bottom-row">
+					<div class="number-title">Proofs Generated</div>
+					<div class="stat-delta">{ formatPercentage(stats.ProofsGeneratedDelta) }</div>
+				</div>
 			</div>
 			<div class="number-block">
 				<div class="rolling-number" id="proofs_verified">{ format(stats.ProofsVerified) }</div>
-				<div class="number-title">Proof Verifications</div>
+				<div class="stat-bottom-row">
+					<div class="number-title">Proof Verifications</div>
+					<div class="stat-delta">{ formatPercentage(stats.ProofsVerifiedDelta) }</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -192,4 +204,12 @@ func format(i uint64) string {
 	s := fmt.Sprintf("%d", i)
 	d := (len(s) - 1) / 3
 	return strings.TrimSpace(s[:((len(s)-1)%3)+1] + suffixes[d:d+1])
+}
+
+func formatPercentage(f float64) string {
+	sign := "+"
+	if f < 0 {
+		sign = "-"
+	}
+	return fmt.Sprintf("%s%.2f%s", sign, f, "%")
 }
