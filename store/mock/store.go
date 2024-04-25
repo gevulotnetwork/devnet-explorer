@@ -29,11 +29,15 @@ func New() *Store {
 	}
 }
 
-func (s *Store) Stats() (model.Stats, error) {
+func (s *Store) Stats(model.StatsRange) (model.Stats, error) {
 	s.stats.ProversDeployed += rand.Uint64() % 9000
 	s.stats.ProofsGenerated += rand.Uint64() % 9000
 	s.stats.ProofsVerified += rand.Uint64() % 9000
 	s.stats.RegisteredUsers += rand.Uint64() % 9000
+	s.stats.ProversDeployedDelta = rand.Float64() * 100
+	s.stats.ProofsGeneratedDelta = rand.Float64() * 100
+	s.stats.ProofsVerifiedDelta = rand.Float64() * 100
+	s.stats.RegisteredUsersDelta = rand.Float64() * 100
 	return s.stats, nil
 }
 

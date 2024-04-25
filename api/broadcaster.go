@@ -16,7 +16,7 @@ import (
 const BufferSize = 50
 
 type Broadcaster struct {
-	s            Store
+	s            EventStream
 	clientsMu    sync.Mutex
 	nextID       uint64
 	clients      map[uint64]member
@@ -33,7 +33,11 @@ type member struct {
 
 type Filter func(model.Event) bool
 
-func NewBroadcaster(s Store, retryTimeout time.Duration) *Broadcaster {
+type EventStream interface {
+	Events() <-chan model.Event
+}
+
+func NewBroadcaster(s EventStream, retryTimeout time.Duration) *Broadcaster {
 	return &Broadcaster{
 		s:            s,
 		clients:      make(map[uint64]member),

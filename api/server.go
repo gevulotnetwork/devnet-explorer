@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
 )
 
 type Server struct {
 	srv *http.Server
 }
 
-func NewServer(addr string, s Store, b *Broadcaster, statsTTL time.Duration) (*Server, error) {
-	a, err := New(s, b, statsTTL)
+func NewServer(addr string, s Store, b *Broadcaster) (*Server, error) {
+	a, err := New(s, b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create api: %w", err)
 	}

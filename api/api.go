@@ -19,31 +19,21 @@ var assets embed.FS
 
 type Store interface {
 	Search(filter string) ([]model.Event, error)
-	Stats() (model.Stats, error)
+	CachedStats(model.StatsRange) model.Stats
 	Events() <-chan model.Event
 }
 
-type statsCache struct {
-	ttl     time.Duration
-	updated time.Time
-	stats   model.Stats
-}
-
 type API struct {
-	r  *http.ServeMux
-	s  Store
-	b  *Broadcaster
-	st statsCache
+	r *http.ServeMux
+	s Store
+	b *Broadcaster
 }
 
-func New(s Store, b *Broadcaster, statsTTL time.Duration) (*API, error) {
+func New(s Store, b *Broadcaster) (*API, error) {
 	a := &API{
 		r: http.NewServeMux(),
 		s: s,
 		b: b,
-		st: statsCache{
-			ttl: statsTTL,
-		},
 	}
 
 	assetsFS, err := fs.Sub(assets, "assets")
@@ -80,14 +70,13 @@ func (a *API) index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) stats(w http.ResponseWriter, r *http.Request) {
-	if time.Since(a.st.updated) > time.Second*5 {
-		var err error
-		if a.st.stats, err = a.s.Stats(); err != nil {
-			slog.Error("failed to render stats", slog.Any("err", err))
-		}
+	sr, err := model.ParseStatsRange(r.URL.Query().Get("range"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	if err := templates.Stats(a.st.stats, a.st.ttl).Render(r.Context(), w); err != nil {
+	if err := templates.Stats(a.s.CachedStats(sr)).Render(r.Context(), w); err != nil {
 		slog.Error("failed to render stats", slog.Any("err", err))
 		return
 	}
@@ -115,7 +104,7 @@ func (a *API) table(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := templates.Table(events, query).Render(r.Context(), w); err != nil {
-		slog.Error("failed to render stats", slog.Any("err", err))
+		slog.Error("failed to render table", slog.Any("err", err))
 		return
 	}
 }

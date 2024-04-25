@@ -17,7 +17,7 @@ templ Index() {
 		<body class="">
 			<div id="container">
 				@header()
-				@Stats(model.Stats{}, time.Millisecond)
+				@Stats(model.Stats{})
 				@Table(nil, url.Values{})
 				@footer()
 			</div>
@@ -25,26 +25,38 @@ templ Index() {
 	</html>
 }
 
-templ Stats(stats model.Stats, interval time.Duration) {
-	<div id="stats" hx-get="/api/v1/stats" hx-trigger={ "every " + interval.String() } hx-swap="outerHTML">
+templ Stats(stats model.Stats) {
+	<div id="stats">
 		<div id="left-stats">
 			<div class="number-block">
 				<div class="rolling-number" id="registered_users">{ format(stats.RegisteredUsers) }</div>
-				<div class="number-title">Registered<br/>Users</div>
+				<div class="stat-bottom-row">
+					<div class="number-title">Registered Users</div>
+					<div class="stat-delta">{ formatPercentage(stats.RegisteredUsersDelta) }</div>
+				</div>
 			</div>
 			<div class="number-block">
 				<div class="rolling-number" id="provers_deployed">{ format(stats.ProversDeployed) }</div>
-				<div class="number-title">Provers<br/>Deployed</div>
+				<div class="stat-bottom-row">
+					<div class="number-title">Provers Deployed</div>
+					<div class="stat-delta">{ formatPercentage(stats.ProversDeployedDelta) }</div>
+				</div>
 			</div>
 		</div>
 		<div id="right-stats">
 			<div class="number-block">
 				<div class="rolling-number" id="proofs_generated">{ format(stats.ProofsGenerated) }</div>
-				<div class="number-title">Proofs<br/>Generated</div>
+				<div class="stat-bottom-row">
+					<div class="number-title">Proofs Generated</div>
+					<div class="stat-delta">{ formatPercentage(stats.ProofsGeneratedDelta) }</div>
+				</div>
 			</div>
 			<div class="number-block">
 				<div class="rolling-number" id="proofs_verified">{ format(stats.ProofsVerified) }</div>
-				<div class="number-title">Proof<br/>Verifications</div>
+				<div class="stat-bottom-row">
+					<div class="number-title">Proof Verifications</div>
+					<div class="stat-delta">{ formatPercentage(stats.ProofsVerifiedDelta) }</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -137,30 +149,49 @@ templ head() {
 
 templ header() {
 	<div id="header">
-		<div id="header-left">
-			<div id="logo">Gevulot</div>
-			<div id="search">
-				<input
-					type="text"
-					id="search-input"
-					placeholder="Search"
-					type="text"
-					name="q"
-					hx-get="/api/v1/events"
-					hx-trigger="keyup changed delay:500ms"
-					hx-target="#table"
-				/>
-			</div>
+		<div id="logo">Gevulot</div>
+		<div id="live">Live<span class="dot"></span></div>
+		<div id="range">
+			<form
+				id="range-form"
+				hx-get="/api/v1/stats"
+				hx-trigger="load, change, every 5s"
+				hx-target="#stats"
+				hx-swap="outerHTML"
+			>
+				<input type="radio" id="1w" name="range" value="1w" checked="checked"/>
+				<label for="1w" class="range-selector">1w</label>
+				<input type="radio" id="1m" name="range" value="1m"/>
+				<label for="1m" class="range-selector">1m</label>
+				<input type="radio" id="6m" name="range" value="6m"/>
+				<label for="6m" class="range-selector">6m</label>
+				<input type="radio" id="1y" name="range" value="1y"/>
+				<label for="1y" class="range-selector">1y</label>
+			</form>
 		</div>
-		<div id="header-right">
-			<div id="mode">
-				<span>Light</span>
-				<label class="switch">
-					<input type="checkbox" hx-on:click="htmx.toggleClass(htmx.find('body'), 'dark');"/>
-					<span class="slider round"></span>
-				</label><span>Dark</span>
+		<div id="search">
+			<input
+				type="text"
+				id="search-input"
+				placeholder="Search"
+				type="text"
+				name="q"
+				hx-get="/api/v1/events"
+				hx-trigger="keyup changed delay:500ms"
+				hx-target="#table"
+			/>
+		</div>
+		<div id="mode">
+			<div id="mode-wrap" hx-on:click="htmx.toggleClass(htmx.find('body'), 'dark');">
+				<div id="mode-left-wrap">
+					<span id="light-dot" class="dot"></span>
+					<span id="light">Light</span>
+				</div>
+				<div id="mode-right-wrap">
+					<span id="dark-dot" class="dot"></span>
+					<span id="dark">Dark</span>
+				</div>
 			</div>
-			<div id="live">Live<span id="dot"></span></div>
 		</div>
 	</div>
 }
@@ -185,4 +216,12 @@ func format(i uint64) string {
 	s := fmt.Sprintf("%d", i)
 	d := (len(s) - 1) / 3
 	return strings.TrimSpace(s[:((len(s)-1)%3)+1] + suffixes[d:d+1])
+}
+
+func formatPercentage(f float64) string {
+	sign := "+"
+	if f < 0 {
+		sign = "-"
+	}
+	return fmt.Sprintf("%s%.2f%s", sign, f, "%")
 }

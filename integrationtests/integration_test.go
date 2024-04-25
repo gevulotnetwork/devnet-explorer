@@ -55,7 +55,7 @@ func index(t *testing.T) {
 }
 
 func getStats(t *testing.T) {
-	r, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8383/api/v1/stats", nil)
+	r, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8383/api/v1/stats?range=1m", nil)
 	require.NoError(t, err)
 
 	resp, err := (&http.Client{}).Do(r)
@@ -64,7 +64,7 @@ func getStats(t *testing.T) {
 	data, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	const expectedResp = `<div id="stats" hx-get="/api/v1/stats" hx-trigger="every`
+	const expectedResp = `<div id="stats"`
 	require.True(t, strings.HasPrefix(string(data), expectedResp), string(data))
 }
 

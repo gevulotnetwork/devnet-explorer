@@ -1,12 +1,20 @@
 package model
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 type Stats struct {
-	RegisteredUsers uint64 `json:"registered_users"`
-	ProofsGenerated uint64 `json:"proofs_generated"`
-	ProversDeployed uint64 `json:"programs"`
-	ProofsVerified  uint64 `json:"proofs_verified"`
+	RegisteredUsers      uint64  `json:"registered_users"`
+	ProofsGenerated      uint64  `json:"proofs_generated"`
+	ProversDeployed      uint64  `json:"programs"`
+	ProofsVerified       uint64  `json:"proofs_verified"`
+	RegisteredUsersDelta float64 `json:"registered_users_delta"`
+	ProofsGeneratedDelta float64 `json:"proofs_generated_delta"`
+	ProversDeployedDelta float64 `json:"programs_delta"`
+	ProofsVerifiedDelta  float64 `json:"proofs_verified_delta"`
 }
 
 type Event struct {
@@ -15,4 +23,54 @@ type Event struct {
 	ProverID  string    `db:"prover_id" json:"prover_id"`
 	Tag       string    `json:"tag"`
 	Timestamp time.Time `json:"timestamp"`
+}
+
+type StatsRange interface {
+	String() string
+	sr()
+}
+
+type sr uint8
+
+func (s sr) String() string {
+	switch s {
+	case RangeWeek:
+		return "1w"
+	case RangeMonth:
+		return "1m"
+	case RangeHalfYear:
+		return "6m"
+	case RangeYear:
+		return "1y"
+	default:
+		return ""
+	}
+}
+
+func (s sr) sr() {}
+
+const (
+	RangeWeek     sr = 0
+	RangeMonth    sr = 1
+	RangeHalfYear sr = 2
+	RangeYear     sr = 3
+)
+
+func ParseStatsRange(r string) (StatsRange, error) {
+	switch strings.ToUpper(r) {
+	case "1W":
+		return RangeWeek, nil
+	case "1M":
+		return RangeMonth, nil
+	case "6M":
+		return RangeHalfYear, nil
+	case "1Y":
+		return RangeYear, nil
+	default:
+		return nil, fmt.Errorf("invalid StatsRange string")
+	}
+}
+
+func SupportedStatsRanges() []StatsRange {
+	return []StatsRange{RangeWeek, RangeMonth, RangeHalfYear, RangeYear}
 }

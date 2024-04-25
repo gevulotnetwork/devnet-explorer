@@ -8,15 +8,28 @@ import (
 	"time"
 
 	"github.com/gevulotnetwork/devnet-explorer/api"
+	"github.com/gevulotnetwork/devnet-explorer/model"
 	"github.com/gevulotnetwork/devnet-explorer/signalhandler"
+	"github.com/gevulotnetwork/devnet-explorer/store/cache"
 	"github.com/gevulotnetwork/devnet-explorer/store/mock"
 	"github.com/gevulotnetwork/devnet-explorer/store/pg"
 	"github.com/kelseyhightower/envconfig"
 )
 
 type Store interface {
-	api.Store
+	Search(filter string) ([]model.Event, error)
+	Stats(model.StatsRange) (model.Stats, error)
+	Events() <-chan model.Event
 	Runnable
+}
+
+type CachedStore interface {
+	CachedStats(model.StatsRange) model.Stats
+}
+
+type CombinedStore struct {
+	Store
+	CachedStore
 }
 
 // Run starts the application and listens for OS signals to gracefully shutdown.
@@ -41,14 +54,20 @@ func Run(args ...string) error {
 		}
 	}
 
-	brc := api.NewBroadcaster(s, conf.SseRetryTimeout)
-	srv, err := api.NewServer(conf.ServerListenAddr, s, brc, conf.StatsTTL)
+	c := cache.NewStatsCache(s, conf.StatsTTL)
+	cs := CombinedStore{
+		Store:       s,
+		CachedStore: c,
+	}
+
+	brc := api.NewBroadcaster(cs, conf.SseRetryTimeout)
+	srv, err := api.NewServer(conf.ServerListenAddr, cs, brc)
 	if err != nil {
 		return fmt.Errorf("failed to api server: %w", err)
 	}
 
 	sh := signalhandler.New(os.Interrupt)
-	r := NewRunner(s, srv, brc, sh)
+	r := NewRunner(s, c, srv, brc, sh)
 	return r.Run()
 }
 
