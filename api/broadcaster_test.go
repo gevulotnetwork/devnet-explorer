@@ -178,12 +178,11 @@ func TestBroadcasterRetry(t *testing.T) {
 
 type MockStore struct {
 	stats        model.Stats
-	statsErr     error
 	searchResult []model.Event
 	searchErr    error
 	events       chan model.Event
 }
 
-func (m *MockStore) Stats() (model.Stats, error)          { return m.stats, m.statsErr }
+func (m *MockStore) CachedStats(string) model.Stats       { return m.stats }
 func (m *MockStore) Events() <-chan model.Event           { return m.events }
 func (m *MockStore) Search(string) ([]model.Event, error) { return m.searchResult, m.searchErr }

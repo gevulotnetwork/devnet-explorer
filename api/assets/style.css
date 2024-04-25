@@ -128,6 +128,18 @@ body.dark {
   display: flex;
 }
 
+#range input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+#range form {
+  display: flex;
+}
+
 .range-selector {
   width: 30px;
   height: 21px;
@@ -139,11 +151,11 @@ body.dark {
   font-size: 15px;
   line-height: 21px;
   text-align: center;
-  cursor: pointer;
   margin-right: 5px;
+  cursor: pointer;
 }
 
-.range-selector.selected {
+#range input:checked+label {
   background: #FFFFFF;
   border-radius: 40px;
   border: 1px solid #CFCFCF;

@@ -29,7 +29,7 @@ func New() *Store {
 	}
 }
 
-func (s *Store) Stats() (model.Stats, error) {
+func (s *Store) Stats(string) (model.Stats, error) {
 	s.stats.ProversDeployed += rand.Uint64() % 9000
 	s.stats.ProofsGenerated += rand.Uint64() % 9000
 	s.stats.ProofsVerified += rand.Uint64() % 9000

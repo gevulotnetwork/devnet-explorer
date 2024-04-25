@@ -17,7 +17,7 @@ templ Index() {
 		<body class="">
 			<div id="container">
 				@header()
-				@Stats(model.Stats{}, time.Millisecond)
+				@Stats(model.Stats{})
 				@Table(nil, url.Values{})
 				@footer()
 			</div>
@@ -25,8 +25,8 @@ templ Index() {
 	</html>
 }
 
-templ Stats(stats model.Stats, interval time.Duration) {
-	<div id="stats" hx-get="/api/v1/stats" hx-trigger={ "every " + interval.String() } hx-swap="outerHTML">
+templ Stats(stats model.Stats) {
+	<div id="stats">
 		<div id="left-stats">
 			<div class="number-block">
 				<div class="rolling-number" id="registered_users">{ format(stats.RegisteredUsers) }</div>
@@ -152,10 +152,22 @@ templ header() {
 		<div id="logo">Gevulot</div>
 		<div id="live">Live<span class="dot"></span></div>
 		<div id="range">
-			<span id="1w" class="range-selector selected">1w</span>
-			<span id="1m" class="range-selector">1m</span>
-			<span id="6m" class="range-selector">6m</span>
-			<span id="1y" class="range-selector">1y</span>
+			<form
+				id="range-form"
+				hx-get="/api/v1/stats"
+				hx-trigger="load, change, every 5s"
+				hx-target="#stats"
+				hx-swap="outerHTML"
+			>
+				<input type="radio" id="1w" name="range" value="1w" checked="checked"/>
+				<label for="1w" class="range-selector">1w</label>
+				<input type="radio" id="1m" name="range" value="1m"/>
+				<label for="1m" class="range-selector">1m</label>
+				<input type="radio" id="6m" name="range" value="6m"/>
+				<label for="6m" class="range-selector">6m</label>
+				<input type="radio" id="1y" name="range" value="1y"/>
+				<label for="1y" class="range-selector">1y</label>
+			</form>
 		</div>
 		<div id="search">
 			<input

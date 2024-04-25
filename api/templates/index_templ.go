@@ -49,7 +49,7 @@ func Index() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Stats(model.Stats{}, time.Millisecond).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Stats(model.Stats{}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -72,7 +72,7 @@ func Index() templ.Component {
 	})
 }
 
-func Stats(stats model.Stats, interval time.Duration) templ.Component {
+func Stats(stats model.Stats) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -85,15 +85,7 @@ func Stats(stats model.Stats, interval time.Duration) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"stats\" hx-get=\"/api/v1/stats\" hx-trigger=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString("every " + interval.String()))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"outerHTML\"><div id=\"left-stats\"><div class=\"number-block\"><div class=\"rolling-number\" id=\"registered_users\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"stats\"><div id=\"left-stats\"><div class=\"number-block\"><div class=\"rolling-number\" id=\"registered_users\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -411,7 +403,7 @@ func header() templ.Component {
 			templ_7745c5c3_Var20 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><div id=\"logo\">Gevulot</div><div id=\"live\">Live<span class=\"dot\"></span></div><div id=\"range\"><span id=\"1w\" class=\"range-selector selected\">1w</span> <span id=\"1m\" class=\"range-selector\">1m</span> <span id=\"6m\" class=\"range-selector\">6m</span> <span id=\"1y\" class=\"range-selector\">1y</span></div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div><div id=\"mode\"><div id=\"mode-wrap\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"><div id=\"mode-left-wrap\"><span id=\"light-dot\" class=\"dot\"></span> <span id=\"light\">Light</span></div><div id=\"mode-right-wrap\"><span id=\"dark-dot\" class=\"dot\"></span> <span id=\"dark\">Dark</span></div></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><div id=\"logo\">Gevulot</div><div id=\"live\">Live<span class=\"dot\"></span></div><div id=\"range\"><form id=\"range-form\" hx-get=\"/api/v1/stats\" hx-trigger=\"load, change, every 5s\" hx-target=\"#stats\" hx-swap=\"outerHTML\"><input type=\"radio\" id=\"1w\" name=\"range\" value=\"1w\" checked=\"checked\"> <label for=\"1w\" class=\"range-selector\">1w</label> <input type=\"radio\" id=\"1m\" name=\"range\" value=\"1m\"> <label for=\"1m\" class=\"range-selector\">1m</label> <input type=\"radio\" id=\"6m\" name=\"range\" value=\"6m\"> <label for=\"6m\" class=\"range-selector\">6m</label> <input type=\"radio\" id=\"1y\" name=\"range\" value=\"1y\"> <label for=\"1y\" class=\"range-selector\">1y</label></form></div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div><div id=\"mode\"><div id=\"mode-wrap\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"><div id=\"mode-left-wrap\"><span id=\"light-dot\" class=\"dot\"></span> <span id=\"light\">Light</span></div><div id=\"mode-right-wrap\"><span id=\"dark-dot\" class=\"dot\"></span> <span id=\"dark\">Dark</span></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -442,7 +434,7 @@ func footer() templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/index.templ`, Line: 188, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/index.templ`, Line: 200, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {

@@ -80,7 +80,8 @@ func (s *Store) Run() error {
 	})
 }
 
-func (s *Store) Stats() (model.Stats, error) {
+// Stats return stats for the given time range
+func (s *Store) Stats(r string) (model.Stats, error) {
 	const query = `
 	SELECT
 		(SELECT COUNT(*) FROM acl_whitelist) as RegisteredUsers,
