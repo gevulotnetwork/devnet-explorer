@@ -10,7 +10,7 @@ import (
 )
 
 type StatsStore interface {
-	Stats(string) (model.Stats, error)
+	Stats(model.StatsRange) (model.Stats, error)
 }
 
 type Cache struct {
@@ -19,6 +19,8 @@ type Cache struct {
 	done     chan struct{}
 	stats    atomic.Value
 }
+
+type statsMap map[model.StatsRange]model.Stats
 
 func NewStatsCache(s StatsStore, interval time.Duration) *Cache {
 	return &Cache{
@@ -52,8 +54,8 @@ func (s *Cache) Stop() error {
 }
 
 func (s *Cache) refresh() error {
-	statsMap := make(map[string]model.Stats, 4)
-	for _, r := range []string{"1w", "1m", "6m", "1y"} {
+	statsMap := make(statsMap, 4)
+	for _, r := range model.SupportedStatsRanges() {
 		stats, err := s.store.Stats(r)
 		if err != nil {
 			return fmt.Errorf("failed to get stats for range %s: %w", r, err)
@@ -66,6 +68,6 @@ func (s *Cache) refresh() error {
 	return nil
 }
 
-func (s *Cache) CachedStats(r string) model.Stats {
-	return s.stats.Load().(map[string]model.Stats)[r]
+func (s *Cache) CachedStats(r model.StatsRange) model.Stats {
+	return s.stats.Load().(statsMap)[r]
 }

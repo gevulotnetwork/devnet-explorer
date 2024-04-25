@@ -19,7 +19,7 @@ var assets embed.FS
 
 type Store interface {
 	Search(filter string) ([]model.Event, error)
-	CachedStats(string) model.Stats
+	CachedStats(model.StatsRange) model.Stats
 	Events() <-chan model.Event
 }
 
@@ -70,8 +70,16 @@ func (a *API) index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) stats(w http.ResponseWriter, r *http.Request) {
-	sr := r.URL.Query().Get("range")
-	templates.Stats(a.s.CachedStats(sr)).Render(r.Context(), w)
+	sr, err := model.ParseStatsRange(r.URL.Query().Get("range"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := templates.Stats(a.s.CachedStats(sr)).Render(r.Context(), w); err != nil {
+		slog.Error("failed to render stats", slog.Any("err", err))
+		return
+	}
 }
 
 func (a *API) table(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +104,7 @@ func (a *API) table(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := templates.Table(events, query).Render(r.Context(), w); err != nil {
-		slog.Error("failed to render stats", slog.Any("err", err))
+		slog.Error("failed to render table", slog.Any("err", err))
 		return
 	}
 }

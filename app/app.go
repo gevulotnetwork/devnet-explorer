@@ -18,13 +18,13 @@ import (
 
 type Store interface {
 	Search(filter string) ([]model.Event, error)
-	Stats(string) (model.Stats, error)
+	Stats(model.StatsRange) (model.Stats, error)
 	Events() <-chan model.Event
 	Runnable
 }
 
 type CachedStore interface {
-	CachedStats(string) model.Stats
+	CachedStats(model.StatsRange) model.Stats
 }
 
 type CombinedStore struct {

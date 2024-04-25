@@ -80,8 +80,11 @@ func (s *Store) Run() error {
 	})
 }
 
-// Stats return stats for the given time range
-func (s *Store) Stats(r string) (model.Stats, error) {
+// Stats returns stats for the given time range.
+func (s *Store) Stats(r model.StatsRange) (model.Stats, error) {
+	// TODO: Get percentages for stats.
+	// TODO: Get stats only for the given range.
+
 	const query = `
 	SELECT
 		(SELECT COUNT(*) FROM acl_whitelist) as RegisteredUsers,
