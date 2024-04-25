@@ -106,7 +106,7 @@ func Stats(stats model.Stats, interval time.Duration) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"number-title\">Registered<br>Users</div></div><div class=\"number-block\"><div class=\"rolling-number\" id=\"provers_deployed\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"number-title\">Registered Users</div></div><div class=\"number-block\"><div class=\"rolling-number\" id=\"provers_deployed\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -119,7 +119,7 @@ func Stats(stats model.Stats, interval time.Duration) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"number-title\">Provers<br>Deployed</div></div></div><div id=\"right-stats\"><div class=\"number-block\"><div class=\"rolling-number\" id=\"proofs_generated\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"number-title\">Provers Deployed</div></div></div><div id=\"right-stats\"><div class=\"number-block\"><div class=\"rolling-number\" id=\"proofs_generated\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -132,7 +132,7 @@ func Stats(stats model.Stats, interval time.Duration) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"number-title\">Proofs<br>Generated</div></div><div class=\"number-block\"><div class=\"rolling-number\" id=\"proofs_verified\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"number-title\">Proofs Generated</div></div><div class=\"number-block\"><div class=\"rolling-number\" id=\"proofs_verified\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -145,7 +145,7 @@ func Stats(stats model.Stats, interval time.Duration) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"number-title\">Proof<br>Verifications</div></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"number-title\">Proof Verifications</div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -359,7 +359,7 @@ func header() templ.Component {
 			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><div id=\"header-left\"><div id=\"logo\">Gevulot</div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div></div><div id=\"header-right\"><div id=\"mode\"><span>Light</span> <label class=\"switch\"><input type=\"checkbox\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"> <span class=\"slider round\"></span></label><span>Dark</span></div><div id=\"live\">Live<span id=\"dot\"></span></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><div id=\"logo\">Gevulot</div><div id=\"live\">Live<span class=\"dot\"></span></div><div id=\"range\"><span id=\"1w\" class=\"range-selector selected\">1w</span> <span id=\"1m\" class=\"range-selector\">1m</span> <span id=\"6m\" class=\"range-selector\">6m</span> <span id=\"1y\" class=\"range-selector\">1y</span></div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div><div id=\"mode\"><div id=\"mode-wrap\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"><div id=\"mode-left-wrap\"><span id=\"light-dot\" class=\"dot\"></span> <span id=\"light\">Light</span></div><div id=\"mode-right-wrap\"><span id=\"dark-dot\" class=\"dot\"></span> <span id=\"dark\">Dark</span></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -390,7 +390,7 @@ func footer() templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/index.templ`, Line: 169, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/index.templ`, Line: 176, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
