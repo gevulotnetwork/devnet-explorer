@@ -183,6 +183,6 @@ type MockStore struct {
 	events       chan model.Event
 }
 
-func (m *MockStore) CachedStats(string) model.Stats       { return m.stats }
-func (m *MockStore) Events() <-chan model.Event           { return m.events }
-func (m *MockStore) Search(string) ([]model.Event, error) { return m.searchResult, m.searchErr }
+func (m *MockStore) CachedStats(model.StatsRange) model.Stats { return m.stats }
+func (m *MockStore) Events() <-chan model.Event               { return m.events }
+func (m *MockStore) Search(string) ([]model.Event, error)     { return m.searchResult, m.searchErr }
