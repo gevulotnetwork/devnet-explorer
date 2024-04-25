@@ -289,7 +289,7 @@ input::-moz-placeholder {
 
 #stats {
   display: flex;
-  max-height: 246px;
+  max-height: 250px;
   flex-basis: 100%;
 }
 
@@ -310,6 +310,7 @@ input::-moz-placeholder {
   padding: 20px;
   display: flex;
   flex-direction: column;
+  height: 206px;
 }
 
 #left-stats>.number-block:first-child {
@@ -688,6 +689,7 @@ input:checked+.slider:before {
     max-height: fit-content;
     height: auto;
     flex-basis: content;
+    padding-bottom: 10px;
   }
 
   #left-stats>.number-block {
