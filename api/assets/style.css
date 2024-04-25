@@ -167,7 +167,7 @@ body.dark .range-selector {
   color: #FFFFFF;
 }
 
-body.dark .range-selector.selected {
+body.dark #range input:checked+label {
   background: #000000;
   border: 1px solid #CFCFCF;
   color: #FFFFFF;
