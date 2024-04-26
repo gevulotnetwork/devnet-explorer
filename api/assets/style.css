@@ -426,12 +426,17 @@ body.dark .tbody {
   line-height: 40px;
 }
 
-.tr:nth-child(even) {
+.tr:nth-last-child(odd) {
   background: #eeeeee;
 }
 
-body.dark .tr:nth-child(even) {
+body.dark .tr:nth-last-child(odd) {
   background: #333333;
+}
+
+.tr:hover {
+  background: #B3FFAB;
+  cursor: pointer;
 }
 
 .left>.td:nth-child(1) {
