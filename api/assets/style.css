@@ -104,11 +104,14 @@ body.dark {
 
 #logo {
   width: 50%;
+  max-height: 18px;
+  margin-bottom: 12px;
 }
 
 #live {
   width: 50%;
   text-align: right;
+  max-height: 18px;
 }
 
 #live>.dot {
@@ -124,7 +127,7 @@ body.dark {
 }
 
 #range {
-  width: 26%;
+  width: 25%;
   display: flex;
 }
 
@@ -174,7 +177,7 @@ body.dark #range input:checked+label {
 }
 
 #mode {
-  width: 26%;
+  width: 25%;
   font-weight: 400;
   font-size: 15px;
   line-height: 18px;
@@ -234,10 +237,13 @@ body.dark #light {
 }
 
 #search {
-  width: 48%;
+  width: 50%;
+  display: flex;
+  padding-bottom: 5px;
 }
 
 #search>input {
+  margin: 0 4px;
   border: 0;
   outline: 0;
   background: transparent;
@@ -760,9 +766,7 @@ input:checked+.slider:before {
   height: 20px;
 }
 
-#tx-log {
-  display: none;
-}
+#tx-log {}
 
 .tx-log-events {}
 
@@ -848,6 +852,10 @@ body.dark .tx-id-block-copy svg path {
     padding: 10px 0px;
   }
 
+  #search>input {
+    margin: 0;
+  }
+
   #range {
     order: 4;
     width: 50%;
@@ -868,6 +876,7 @@ body.dark .tx-id-block-copy svg path {
     height: auto;
     flex-basis: content;
     padding-bottom: 10px;
+    margin-top: 10px;
   }
 
   #left-stats>.number-block {
