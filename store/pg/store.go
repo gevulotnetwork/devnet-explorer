@@ -22,10 +22,10 @@ type gevulotTransaction struct {
 	author     string
 	hash       string
 	kind       string
-	nonce      int
-	signature  string
-	propagated bool
-	executed   bool
+	nonce      int    //nolint: unused
+	signature  string //nolint: unused
+	propagated bool   //nolint: unused
+	executed   bool   //nolint: unused
 	created_at time.Time
 }
 
