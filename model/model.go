@@ -25,6 +25,22 @@ type Event struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
+type TxInfo struct {
+	State    string        `json:"state"`
+	Duration time.Duration `json:"duration"`
+	TxID     string        `json:"tx_id"`
+	UserID   string        `json:"user_id"`
+	ProverID string        `json:"prover_id"`
+	Log      []TxLogEvent  `json:"log"`
+}
+
+type TxLogEvent struct {
+	State     string    `json:"state"`
+	IDType    string    `json:"id_type"`
+	ID        string    `json:"id"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
 type StatsRange interface {
 	String() string
 	sr()

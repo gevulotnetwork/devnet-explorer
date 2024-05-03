@@ -21,6 +21,7 @@ type Store interface {
 	Search(filter string) ([]model.Event, error)
 	CachedStats(model.StatsRange) model.Stats
 	Events() <-chan model.Event
+	TxInfo(id string) (model.TxInfo, error)
 }
 
 type API struct {
@@ -42,6 +43,7 @@ func New(s Store, b *Broadcaster) (*API, error) {
 	}
 
 	a.r.HandleFunc("GET /", a.index)
+	a.r.HandleFunc("GET /tx/{tx}", a.txPage)
 	a.r.HandleFunc("GET /api/v1/stream", a.stream)
 	a.r.HandleFunc("GET /api/v1/stats", a.stats)
 	a.r.HandleFunc("GET /api/v1/events", a.table)
@@ -66,6 +68,37 @@ func (a *API) index(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := templates.Index().Render(r.Context(), w); err != nil {
 		slog.Error("failed to render index", slog.Any("err", err))
+	}
+}
+
+func (a *API) txPage(w http.ResponseWriter, r *http.Request) {
+	tx := r.PathValue("tx")
+	txInfo, err := a.s.TxInfo(tx)
+	if err != nil {
+		http.Error(w, "tx not found", http.StatusNotFound)
+		return
+	}
+
+	if r.Header.Get("Hx-Request") == "true" {
+		w.Header().Set("HX-Push-Url", r.URL.EscapedPath())
+		if err := templates.Tx(txInfo).Render(r.Context(), w); err != nil {
+			slog.Error("failed to render TxInfo", slog.Any("err", err))
+		}
+		return
+	}
+
+	// nolint:errcheck
+	if pusher, ok := w.(http.Pusher); ok {
+		pusher.Push("/assets/style.css", nil)
+		pusher.Push("/assets/htmx.min.js", nil)
+		pusher.Push("/assets/sse.js", nil)
+		pusher.Push("/assets/Inter-Regular.ttf", nil)
+		pusher.Push("/assets/Inter-Bold.ttf", nil)
+		pusher.Push("/assets/Inter-SemiBold.ttf", nil)
+	}
+
+	if err := templates.TxPage(txInfo).Render(r.Context(), w); err != nil {
+		slog.Error("failed to render TxPage", slog.Any("err", err))
 	}
 }
 
