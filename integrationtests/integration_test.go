@@ -74,7 +74,7 @@ func receiveFirstEvent(t *testing.T) {
 
 	select {
 	case e := <-events:
-		expected := `<div class="tr"><div class="left"><div class="td">`
+		expected := `<div class="tr" hx-get="/tx/1234" hx-trigger="click" hx-target="#table" hx-swap="outerHTML"><div class="left"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>1234</div></div></div><div class="right"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></div><div class="end"><span class="arrow">→</span></div></div>`
 		require.Contains(t, string(e.Data), expected)
 	case <-time.After(time.Second * 5):
 		t.Fatal("timeout")
@@ -89,8 +89,8 @@ func receiveEventsFromBuffer(t *testing.T) {
 		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
 		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
 		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "foobar","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "foobar","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
 	}
 
 	notify(t, txs...)
@@ -103,7 +103,7 @@ func receiveEventsFromBuffer(t *testing.T) {
 	for i := 0; i < expectedEvents; i++ {
 		select {
 		case e := <-events:
-			expected := `<div class="tr"><div class="left"><div class="td">`
+			expected := `<div class="tr" hx-get="/tx/1234" hx-trigger="click" hx-target="#table" hx-swap="outerHTML"><div class="left"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>1234</div></div></div><div class="right"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></div><div class="end"><span class="arrow">→</span></div></div>`
 			assert.Contains(t, string(e.Data), expected)
 		case <-time.After(time.Second * 5):
 			t.Fatal("timeout")
