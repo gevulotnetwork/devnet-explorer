@@ -4,6 +4,7 @@ package pg
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,15 +19,57 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// Gevulot Transaction Kind type
+const (
+	run          txKind = "run"
+	proof        txKind = "proof"
+	verification txKind = "verification"
+)
+
+type txKind string
+
+func (k *txKind) Scan(value interface{}) error {
+	v, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("invalid transaction kind value: %#v", value)
+	}
+
+	switch v {
+	case "run":
+		*k = run
+	case "proof":
+		*k = proof
+	case "verification":
+		*k = verification
+	default:
+		return fmt.Errorf("unrecognized transaction kind type: %q", v)
+	}
+
+	return nil
+}
+
+func (k *txKind) Value() (driver.Value, error) {
+	switch *k {
+	case run:
+		return int64(1), nil
+	case proof:
+		return int64(2), nil
+	case verification:
+		return int64(3), nil
+	default:
+		return int64(0), fmt.Errorf("unrecognized transaction kind type: %q", *k)
+	}
+}
+
 type gevulotTransaction struct {
-	author     string
-	hash       string
-	kind       string
-	nonce      int    //nolint: unused
-	signature  string //nolint: unused
-	propagated bool   //nolint: unused
-	executed   bool   //nolint: unused
-	created_at time.Time
+	Author     string
+	Hash       string
+	Kind       txKind
+	Nonce      int    //nolint: unused
+	Signature  string //nolint: unused
+	Propagated bool   //nolint: unused
+	Executed   bool   //nolint: unused
+	Created_at time.Time
 }
 
 type Store struct {
@@ -173,7 +216,8 @@ func (s *Store) Search(filter string) ([]model.Event, error) {
 func (s *Store) TxInfo(id string) (model.TxInfo, error) {
 	var tx gevulotTransaction
 	const fetchTxQuery = `SELECT * FROM transaction WHERE hash = $1`
-	if _, err := s.db.Select(&tx, fetchTxQuery, id); err != nil {
+	if err := s.db.SelectOne(&tx, fetchTxQuery, id); err != nil {
+		slog.Error("failed to find transaction", slog.Any("err", err))
 		return model.TxInfo{}, err
 	}
 
@@ -185,42 +229,47 @@ func (s *Store) TxInfo(id string) (model.TxInfo, error) {
 		SELECT t.* FROM transaction AS t JOIN verification AS v on v.tx=t.hash JOIN proof AS p ON v.parent = p.tx WHERE p.parent = $1
 	`
 	var txHash string
-	switch tx.kind {
-	case "run":
-		txHash = tx.hash
-	case "proof":
+	switch tx.Kind {
+	case run:
+		txHash = tx.Hash
+	case proof:
 		{
 			const fetchProofParent = `SELECT parent FROM proof WHERE tx = $1`
-			if _, err := s.db.Select(&txHash, fetchProofParent, tx.hash); err != nil {
+			if err := s.db.SelectOne(&txHash, fetchProofParent, tx.Hash); err != nil {
+				slog.Error("failed to find parent transaction for proof", slog.Any("err", err))
 				return model.TxInfo{}, err
 			}
 		}
-	case "verification":
+	case verification:
 		{
-			const fetchVerificationParent = `SELECT parent FROM proof JOIN verification ON proof.tx = verification.parent WHERE verification.tx = $1`
-			if _, err := s.db.Select(&txHash, fetchVerificationParent, tx.hash); err != nil {
+			const fetchVerificationParent = `SELECT p.parent FROM proof AS p JOIN verification AS v ON p.tx = v.parent WHERE v.tx = $1`
+			if err := s.db.SelectOne(&txHash, fetchVerificationParent, tx.Hash); err != nil {
+				slog.Error("failed to find parent transaction for verification", slog.Any("err", err))
 				return model.TxInfo{}, err
 			}
 		}
 	default:
-		return model.TxInfo{}, fmt.Errorf("invalid transaction kind: %q", tx.kind)
+		slog.Error("invalid transaction kind", slog.Any("tx.Kind", tx.Kind))
+		return model.TxInfo{}, fmt.Errorf("invalid transaction kind: %q", tx.Kind)
 	}
 
 	var txs []gevulotTransaction
-	if _, err := s.db.Select(txs, fetchTxsQuery, txHash); err != nil {
+	if _, err := s.db.Select(&txs, fetchTxsQuery, txHash); err != nil {
+		slog.Error("failed to query related transactions", slog.Any("parent_run_tx_hash", txHash), slog.Any("err", err))
 		return model.TxInfo{}, err
 	}
 
 	findProverProgramHashQuery := `SELECT ws.program FROM workflow_step AS ws WHERE ws.tx = $1`
 	var proverHash string
-	if _, err := s.db.Select(&proverHash, findProverProgramHashQuery, txHash); err != nil {
+	if err := s.db.SelectOne(&proverHash, findProverProgramHashQuery, txHash); err != nil {
+		slog.Error("failed to query prover program hash", slog.Any("run_tx_hash", txHash))
 		return model.TxInfo{}, err
 	}
 
 	var author string
 	for _, tx := range txs {
-		if tx.kind == "run" {
-			author = tx.author
+		if tx.Kind == "run" {
+			author = tx.Author
 			break
 		}
 	}
@@ -252,12 +301,12 @@ func getJobDuration(txs []gevulotTransaction) time.Duration {
 	var end time.Time
 
 	for _, tx := range txs {
-		if begin.IsZero() || tx.created_at.Before(begin) {
-			begin = tx.created_at
+		if begin.IsZero() || tx.Created_at.Before(begin) {
+			begin = tx.Created_at
 		}
 
-		if end.IsZero() || tx.created_at.After(end) {
-			end = tx.created_at
+		if end.IsZero() || tx.Created_at.After(end) {
+			end = tx.Created_at
 		}
 	}
 
@@ -272,9 +321,9 @@ func getState(txs []gevulotTransaction) string {
 	verifications := 0
 
 	for _, tx := range txs {
-		if tx.kind == "proof" {
+		if tx.Kind == "proof" {
 			proofs++
-		} else if tx.kind == "verification" {
+		} else if tx.Kind == "verification" {
 			verifications++
 		}
 	}
@@ -291,13 +340,13 @@ func getState(txs []gevulotTransaction) string {
 }
 
 func txLogEventsFromTxs(txs []gevulotTransaction) []model.TxLogEvent {
-	stateFromKind := func(k string) string {
+	stateFromKind := func(k txKind) string {
 		switch k {
-		case "run":
+		case run:
 			return "Submitted"
-		case "proof":
+		case proof:
 			return "Proving"
-		case "verification":
+		case verification:
 			return "Verifying"
 		}
 		return ""
@@ -306,10 +355,10 @@ func txLogEventsFromTxs(txs []gevulotTransaction) []model.TxLogEvent {
 	var events []model.TxLogEvent
 	for _, tx := range txs {
 		e := model.TxLogEvent{
-			State:     stateFromKind(tx.kind),
+			State:     stateFromKind(tx.Kind),
 			IDType:    "node id",
-			ID:        tx.author,
-			Timestamp: tx.created_at,
+			ID:        tx.Author,
+			Timestamp: tx.Created_at,
 		}
 
 		// Special handling for the Run tx.
