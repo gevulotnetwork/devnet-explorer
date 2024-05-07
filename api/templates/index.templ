@@ -192,14 +192,23 @@ templ TxLog(tx model.TxInfo) {
 templ TxLogEvent(e model.TxLogEvent) {
 	<div class="tx-log-row">
 		<div class="tx-log-state">
-			<span>{ e.State }</span>
+			<div class="mobile-label">State</div>
+			<div>
+				<span class={ "tag", e.State }>{ e.State }</span>
+			</div>
 		</div>
-		<div class="tx-log-id">
-			<span>{ e.IDType }</span>
-			<span>{ e.ID }</span>
+		<div class="tx-log-id-wrap">
+			<div class="mobile-label">{ e.IDType }</div>
+			<div class="tx-log-id">
+				<span class="tx-log-id-type">{ e.IDType }</span>
+				<span>{ e.ID }</span>
+			</div>
 		</div>
 		<div class="tx-log-timestamp">
-			<span>{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span>
+			<div class="mobile-label">Time</div>
+			<div class="tx-log-timestamp-wrap">
+				<span>{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span>
+			</div>
 		</div>
 	</div>
 }
