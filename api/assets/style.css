@@ -768,15 +768,104 @@ input:checked+.slider:before {
 
 #tx-log {}
 
-.tx-log-events {}
+.tx-log-events {
+  border: 1px solid #EEEEEE;
+}
 
-.tx-log-row {}
+.tx-log-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 9px 0;
+  height: 24px;
+  line-height: 40px;
+}
 
-.tx-log-state {}
+.tx-log-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 24px;
+  line-height: 40px;
+}
 
-.tx-log-id {}
+.tx-log-row>div {
+  display: flex;
+  padding: 5px 0;
+  line-height: 18px;
+}
 
-.tx-log-timestamp {}
+.tx-log-row:nth-last-child(odd) {
+  background: #eeeeee;
+}
+
+body.dark .tx-log-row:nth-last-child(odd) {
+  background: #333333;
+}
+
+.tx-log-state {
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0px;
+  min-width: 0px;
+}
+
+.tx-log-state span {
+  margin-left: 10px;
+}
+
+.tx-log-id-wrap {
+  display: flex;
+  flex-grow: 2;
+  flex-shrink: 2;
+  flex-basis: 0px;
+  min-width: 0px;
+}
+
+.tx-log-id {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 40px;
+}
+
+.tx-log-id-type {
+  border-radius: 40px;
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+  border-color: #b3b3b3;
+  padding: 0 5px;
+}
+
+.tx-log-timestamp {
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0px;
+  min-width: 0px;
+}
+
+
+.tx-log-timestamp-wrap {
+  display: flex;
+  margin-right: 10px;
+  margin-left: auto;
+  min-width: 158px;
+  max-width: 158px;
+}
+
+.tx-log-timestamp span {
+  border-radius: 40px;
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+  border-color: #b3b3b3;
+  text-align: center;
+  width: 100%;
+  line-height: 18px;
+}
 
 body.dark .tx-id-block-copy,
 body.dark .tx-id-block-cop,
@@ -960,6 +1049,47 @@ body.dark .tx-id-block-copy svg path {
     margin-left: 0px;
   }
 
+  .tx-log-row {
+    height: 120px;
+    flex-wrap: wrap;
+  }
+
+  .tx-log-row>div {
+    flex-direction: column;
+    min-width: 50%;
+    max-width: 50%;
+    padding: 0;
+  }
+
+  .tx-log-row>div>div {
+    padding: 0 10px;
+  }
+
+  .tx-log-id-wrap {
+    order: 1;
+  }
+
+  .tx-log-state {
+    order: 2;
+  }
+
+  .tx-log-state span {
+    margin-left: 0;
+    line-height: 40px;
+  }
+
+  .tx-log-timestamp {
+    order: 2;
+  }
+
+  .tx-log-timestamp-wrap {
+    margin: 0;
+    margin-top: 8px;
+  }
+
+  .tx-log-id-type {
+    display: none;
+  }
 
   #footer {
     flex-direction: column;

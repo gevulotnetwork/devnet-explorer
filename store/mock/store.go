@@ -93,7 +93,7 @@ func (s *Store) TxInfo(id string) (model.TxInfo, error) {
 
 	info.Log = []model.TxLogEvent{
 		{
-			State:     "completed",
+			State:     "complete",
 			IDType:    "node id",
 			ID:        hex.EncodeToString(completeID[:]),
 			Timestamp: now,
