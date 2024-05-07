@@ -104,7 +104,7 @@ templ Row(e model.Event) {
 			<div class="td">
 				<div class="mobile-label">State</div>
 				<div>
-					<span class={ "tag", e.State }>{ e.State }</span>
+					<span class={ "tag", strings.ToLower(e.State) }>{ e.State }</span>
 				</div>
 			</div>
 			<div class="td">
@@ -194,7 +194,7 @@ templ TxLogEvent(e model.TxLogEvent) {
 		<div class="tx-log-state">
 			<div class="mobile-label">State</div>
 			<div>
-				<span class={ "tag", e.State }>{ e.State }</span>
+				<span class={ "tag", strings.ToLower(e.State) }>{ e.State }</span>
 			</div>
 		</div>
 		<div class="tx-log-id-wrap">
