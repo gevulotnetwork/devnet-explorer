@@ -2,14 +2,12 @@ package api
 
 import (
 	"bytes"
-	"sync"
 
 	"github.com/gevulotnetwork/devnet-explorer/api/templates"
 	"github.com/gevulotnetwork/devnet-explorer/model"
 )
 
 type eventBuffer struct {
-	headMu    sync.Mutex
 	headIndex int
 	head      []eventData
 	headMap   map[string]header
@@ -33,9 +31,6 @@ func newEventBuffer(size uint) *eventBuffer {
 }
 
 func (b *eventBuffer) add(e model.Event, data []byte) {
-	b.headMu.Lock()
-	defer b.headMu.Unlock()
-
 	data = bytes.Replace(data, []byte("event: "+e.TxID), []byte("event: "+templates.EventTXRow), 1)
 	old, ok := b.headMap[e.TxID]
 	if !ok {
@@ -55,16 +50,10 @@ func (b *eventBuffer) add(e model.Event, data []byte) {
 }
 
 func (b *eventBuffer) writeAllToCh(ch chan<- []byte) {
-	b.headMu.Lock()
-	index := b.headIndex
-	headCopy := make([]eventData, len(b.head))
-	copy(headCopy, b.head)
-	b.headMu.Unlock()
-
-	for i := 1; i <= len(headCopy); i++ {
-		idx := (index + i) % len(headCopy)
-		if headCopy[idx].data != nil {
-			ch <- headCopy[idx].data
+	for i := 1; i <= len(b.head); i++ {
+		data := b.head[(b.headIndex+i)%len(b.head)].data
+		if data != nil {
+			ch <- data
 		}
 	}
 }

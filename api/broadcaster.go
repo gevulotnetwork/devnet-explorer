@@ -92,13 +92,13 @@ func (b *Broadcaster) broadcast(e model.Event) {
 		slog.Error("failed write event into buffer", slog.Any("error", err))
 		return
 	}
-
 	data := buf.Bytes()
-	b.head.add(e, data)
-	blocked := make([]uint64, 0, len(b.clients))
 
 	b.clientsMu.Lock()
 	defer b.clientsMu.Unlock()
+
+	b.head.add(e, data)
+	blocked := make([]uint64, 0, len(b.clients))
 	for id, c := range b.clients {
 		if c.filter(e) {
 			select {
