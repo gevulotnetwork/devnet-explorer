@@ -84,7 +84,7 @@ func (s *Store) TxInfo(id string) (model.TxInfo, error) {
 	completeID := sha512.Sum512([]byte(time.Now().String()))
 	userID := sha512.Sum512([]byte(time.Now().String()))
 	info := model.TxInfo{
-		State:    "completed",
+		State:    model.StateComplete,
 		Duration: 65*time.Minute + 12*time.Second,
 		TxID:     id,
 		UserID:   hex.EncodeToString(userID[:]),
@@ -93,25 +93,25 @@ func (s *Store) TxInfo(id string) (model.TxInfo, error) {
 
 	info.Log = []model.TxLogEvent{
 		{
-			State:     "complete",
+			State:     model.StateComplete,
 			IDType:    "node id",
 			ID:        hex.EncodeToString(completeID[:]),
 			Timestamp: now,
 		},
 		{
-			State:     "verifying",
+			State:     model.StateVerifying,
 			IDType:    "node id",
 			ID:        hex.EncodeToString(verifierID[:]),
 			Timestamp: now.Add(-12 * time.Minute),
 		},
 		{
-			State:     "proving",
+			State:     model.StateProving,
 			IDType:    "node id",
 			ID:        info.ProverID,
 			Timestamp: now.Add(-33 * time.Minute),
 		},
 		{
-			State:     "submitted",
+			State:     model.StateSubmitted,
 			IDType:    "user id",
 			ID:        info.UserID,
 			Timestamp: now.Add(-65 * time.Minute),
@@ -130,7 +130,7 @@ func randomEvent() model.Event {
 	txID := sha512.Sum512([]byte(time.Now().String()))
 	proverID := sha512.Sum512([]byte(time.Now().String()))
 	return model.Event{
-		State:     []string{"submitted", "verifying", "proving", "complete"}[rand.Intn(4)],
+		State:     []model.State{model.StateSubmitted, model.StateVerifying, model.StateProving, model.StateComplete}[rand.Intn(4)],
 		Tag:       []string{"starknet", "polygon", "", "", "", "", "", ""}[rand.Intn(8)],
 		TxID:      hex.EncodeToString(txID[:]),
 		ProverID:  hex.EncodeToString(proverID[:]),
