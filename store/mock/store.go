@@ -4,6 +4,7 @@ package mock
 import (
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
 	"math/rand"
 	"strings"
 	"sync"
@@ -13,18 +14,25 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+const (
+	Parallelism = 10
+)
+
 type Store struct {
-	eventsMu sync.RWMutex
-	events   []model.Event
-	stats    model.Stats
-	eventsCh chan model.Event
-	done     chan struct{}
+	eventsMu   sync.RWMutex
+	events     []model.Event
+	eventQueue [Parallelism]model.Event
+	eventMap   map[string]model.TxInfo
+	stats      model.Stats
+	eventsCh   chan model.Event
+	done       chan struct{}
 }
 
 func New() *Store {
 	return &Store{
 		stats:    model.Stats{},
 		eventsCh: make(chan model.Event, 1000),
+		eventMap: make(map[string]model.TxInfo),
 		done:     make(chan struct{}),
 	}
 }
@@ -44,7 +52,7 @@ func (s *Store) Stats(model.StatsRange) (model.Stats, error) {
 func (s *Store) Run() error {
 	defer close(s.eventsCh)
 	for {
-		e := randomEvent()
+		e := s.nextEvent()
 		s.eventsMu.Lock()
 		s.events = append(s.events, e)
 		s.eventsMu.Unlock()
@@ -78,46 +86,10 @@ func (s *Store) Search(filter string) ([]model.Event, error) {
 }
 
 func (s *Store) TxInfo(id string) (model.TxInfo, error) {
-	now := time.Now()
-	proverID := sha512.Sum512([]byte(time.Now().String()))
-	verifierID := sha512.Sum512([]byte(time.Now().String()))
-	completeID := sha512.Sum512([]byte(time.Now().String()))
-	userID := sha512.Sum512([]byte(time.Now().String()))
-	info := model.TxInfo{
-		State:    model.StateComplete,
-		Duration: 65*time.Minute + 12*time.Second,
-		TxID:     id,
-		UserID:   hex.EncodeToString(userID[:]),
-		ProverID: hex.EncodeToString(proverID[:]),
+	info, ok := s.eventMap[id]
+	if !ok {
+		return model.TxInfo{}, fmt.Errorf("tx %s not found", id)
 	}
-
-	info.Log = []model.TxLogEvent{
-		{
-			State:     model.StateComplete,
-			IDType:    "node id",
-			ID:        hex.EncodeToString(completeID[:]),
-			Timestamp: now,
-		},
-		{
-			State:     model.StateVerifying,
-			IDType:    "node id",
-			ID:        hex.EncodeToString(verifierID[:]),
-			Timestamp: now.Add(-12 * time.Minute),
-		},
-		{
-			State:     model.StateProving,
-			IDType:    "node id",
-			ID:        info.ProverID,
-			Timestamp: now.Add(-33 * time.Minute),
-		},
-		{
-			State:     model.StateSubmitted,
-			IDType:    "user id",
-			ID:        info.UserID,
-			Timestamp: now.Add(-65 * time.Minute),
-		},
-	}
-
 	return info, nil
 }
 
@@ -126,11 +98,87 @@ func (s *Store) Stop() error {
 	return nil
 }
 
+func (s *Store) nextEvent() model.Event {
+	i := rand.Intn(Parallelism)
+	switch s.eventQueue[i].State {
+	case model.StateSubmitted:
+		s.eventQueue[i].State = model.StateProving
+		s.eventQueue[i].Timestamp = time.Now().Local()
+
+		info := s.eventMap[s.eventQueue[i].TxID]
+		info.Log = append(s.eventMap[s.eventQueue[i].TxID].Log, model.TxLogEvent{
+			State:     model.StateProving,
+			IDType:    "node id",
+			ID:        s.eventQueue[i].ProverID,
+			Timestamp: s.eventQueue[i].Timestamp,
+		})
+		s.eventMap[s.eventQueue[i].TxID] = info
+
+	case model.StateProving:
+		s.eventQueue[i].State = model.StateVerifying
+		s.eventQueue[i].Timestamp = time.Now().Local()
+
+		verifierID := sha512.Sum512([]byte(time.Now().String()))
+		info := s.eventMap[s.eventQueue[i].TxID]
+		info.Log = append(s.eventMap[s.eventQueue[i].TxID].Log, model.TxLogEvent{
+			State:     model.StateVerifying,
+			IDType:    "node id",
+			ID:        hex.EncodeToString(verifierID[:]),
+			Timestamp: s.eventQueue[i].Timestamp,
+		})
+		s.eventMap[s.eventQueue[i].TxID] = info
+
+	case model.StateVerifying:
+		s.eventQueue[i].State = []model.State{model.StateVerifying, model.StateVerifying, model.StateVerifying, model.StateComplete}[rand.Intn(4)]
+		s.eventQueue[i].Timestamp = time.Now().Local()
+
+		info := s.eventMap[s.eventQueue[i].TxID]
+		id := sha512.Sum512([]byte(time.Now().String()))
+		log := model.TxLogEvent{
+			IDType:    "node id",
+			ID:        hex.EncodeToString(id[:]),
+			Timestamp: s.eventQueue[i].Timestamp,
+		}
+
+		if s.eventQueue[i].State == model.StateComplete {
+			info.Duration = s.eventQueue[i].Timestamp.Sub(info.Log[0].Timestamp)
+			info.State = model.StateComplete
+			log.State = model.StateComplete
+		} else {
+			log.State = model.StateVerifying
+		}
+
+		info.Log = append(s.eventMap[s.eventQueue[i].TxID].Log, log)
+		s.eventMap[s.eventQueue[i].TxID] = info
+
+	case nil, model.StateComplete:
+		s.eventQueue[i] = randomEvent()
+
+		userID := sha512.Sum512([]byte(time.Now().String()))
+		s.eventMap[s.eventQueue[i].TxID] = model.TxInfo{
+			State:    model.StateProving,
+			TxID:     s.eventQueue[i].TxID,
+			UserID:   hex.EncodeToString(userID[:]),
+			ProverID: s.eventQueue[i].ProverID,
+			Log: []model.TxLogEvent{
+				{
+					State:     model.StateSubmitted,
+					IDType:    "user id",
+					ID:        hex.EncodeToString(userID[:]),
+					Timestamp: s.eventQueue[i].Timestamp,
+				},
+			},
+		}
+	}
+
+	return s.eventQueue[i]
+}
+
 func randomEvent() model.Event {
 	txID := sha512.Sum512([]byte(time.Now().String()))
 	proverID := sha512.Sum512([]byte(time.Now().String()))
 	return model.Event{
-		State:     []model.State{model.StateSubmitted, model.StateVerifying, model.StateProving, model.StateComplete}[rand.Intn(4)],
+		State:     model.StateSubmitted,
 		Tag:       []string{"starknet", "polygon", "", "", "", "", "", ""}[rand.Intn(8)],
 		TxID:      hex.EncodeToString(txID[:]),
 		ProverID:  hex.EncodeToString(proverID[:]),
