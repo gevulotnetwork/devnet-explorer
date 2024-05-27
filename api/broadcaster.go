@@ -13,19 +13,19 @@ import (
 	"github.com/gevulotnetwork/devnet-explorer/model"
 )
 
-const BufferSize = 50
+const BufferSize = 100
 
 type Broadcaster struct {
-	s            EventStream
-	clientsMu    sync.Mutex
-	nextID       uint64
-	clients      map[uint64]member
-	headIndex    uint8
-	head         [BufferSize][]byte
+	s    EventStream
+	head *eventBuffer
+
+	clientsMu sync.Mutex
+	clients   map[uint64]member
+	nextID    uint64
+
 	retryTimeout time.Duration
 	done         chan struct{}
 }
-
 type member struct {
 	ch     chan<- []byte
 	filter Filter
@@ -42,6 +42,7 @@ func NewBroadcaster(s EventStream, retryTimeout time.Duration) *Broadcaster {
 		s:            s,
 		clients:      make(map[uint64]member),
 		retryTimeout: retryTimeout,
+		head:         newEventBuffer(BufferSize),
 		done:         make(chan struct{}),
 	}
 }
@@ -51,18 +52,13 @@ func (b *Broadcaster) Subscribe(f Filter, prefill bool) (data <-chan []byte, uns
 	defer b.clientsMu.Unlock()
 
 	id := b.nextID
-	ch := make(chan []byte, len(b.head)+2)
+	ch := make(chan []byte, BufferSize+5) // +5 to avoid unnecessary blocking on broadcast
 	b.clients[id] = member{ch: ch, filter: f}
 	b.nextID++
 	slog.Info("client subscribed", slog.Uint64("id", id))
 
 	if prefill {
-		for i := 1; i <= len(b.head); i++ {
-			idx := (b.headIndex + uint8(i)) % uint8(len(b.head))
-			if b.head[idx] != nil {
-				ch <- b.head[idx]
-			}
-		}
+		b.head.writeAllToCh(ch)
 	}
 
 	return ch, func() {
@@ -96,14 +92,13 @@ func (b *Broadcaster) broadcast(e model.Event) {
 		slog.Error("failed write event into buffer", slog.Any("error", err))
 		return
 	}
+
 	data := buf.Bytes()
+	b.head.add(e, data)
+	blocked := make([]uint64, 0, len(b.clients))
 
 	b.clientsMu.Lock()
 	defer b.clientsMu.Unlock()
-	b.head[b.headIndex] = data
-	b.headIndex = (b.headIndex + 1) % uint8(len(b.head))
-	blocked := make([]uint64, 0, len(b.clients))
-
 	for id, c := range b.clients {
 		if c.filter(e) {
 			select {
@@ -133,7 +128,12 @@ func (b *Broadcaster) Stop() error {
 }
 
 func writeEvent(w io.Writer, e model.Event) error {
-	fmt.Fprintf(w, "event: %s\ndata: ", templates.EventTXRow)
+	eType := e.TxID
+	if e.State == model.StateSubmitted {
+		eType = templates.EventTXRow
+	}
+
+	fmt.Fprintf(w, "event: %s\ndata: ", eType)
 	if err := templates.Row(e).Render(context.Background(), w); err != nil {
 		return fmt.Errorf("failed render html: %w", err)
 	}

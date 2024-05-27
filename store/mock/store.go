@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	Parallelism = 10
+	Parallelism = 20
 )
 
 type Store struct {

@@ -95,7 +95,8 @@ func SupportedStatsRanges() []StatsRange {
 
 type State interface {
 	String() string
-	state()
+	LessThan(State) bool
+	state() state
 }
 
 type state uint8
@@ -122,7 +123,9 @@ func (s state) String() string {
 	}
 }
 
-func (s state) state() {}
+func (s state) state() state { return s }
+
+func (s state) LessThan(ss State) bool { return s < ss.state() }
 
 func (s *state) Scan(value interface{}) error {
 	stateStr, ok := value.(string)

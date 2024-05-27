@@ -99,7 +99,7 @@ templ Table(events []model.Event, query url.Values) {
 }
 
 templ Row(e model.Event) {
-	<div class="tr" hx-get={ "/tx/" + e.TxID } hx-trigger="click" hx-target="#table" hx-swap="outerHTML">
+	<div id={ e.TxID } class="tr" hx-get={ "/tx/" + e.TxID } hx-trigger="click" sse-swap={ e.TxID } hx-swap="outerHTML">
 		<div class="left">
 			<div class="td">
 				<div class="mobile-label">State</div>
