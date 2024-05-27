@@ -93,23 +93,18 @@ func SupportedStatsRanges() []StatsRange {
 	return []StatsRange{RangeWeek, RangeMonth, RangeHalfYear, RangeYear}
 }
 
-type State interface {
-	String() string
-	LessThan(State) bool
-	state() state
-}
-
-type state uint8
+type State uint8
 
 const (
-	StateSubmitted state = 0
-	StateProving   state = 1
-	StateVerifying state = 2
-	StateComplete  state = 3
+	StateUnknown   State = 0
+	StateSubmitted State = 1
+	StateProving   State = 2
+	StateVerifying State = 3
+	StateComplete  State = 4
 )
 
-func (s state) String() string {
-	switch s {
+func (s *State) String() string {
+	switch *s {
 	case StateSubmitted:
 		return "submitted"
 	case StateProving:
@@ -119,15 +114,11 @@ func (s state) String() string {
 	case StateComplete:
 		return "complete"
 	default:
-		return ""
+		return "unknown"
 	}
 }
 
-func (s state) state() state { return s }
-
-func (s state) LessThan(ss State) bool { return s < ss.state() }
-
-func (s *state) Scan(value interface{}) error {
+func (s *State) Scan(value interface{}) error {
 	stateStr, ok := value.(string)
 	if !ok {
 		return fmt.Errorf("incompatible type for State: %T", value)
@@ -136,19 +127,19 @@ func (s *state) Scan(value interface{}) error {
 	if err != nil {
 		return err
 	}
-	*s = newState.(state)
+	*s = newState
 	return nil
 }
 
-func (s *state) Value() (driver.Value, error) {
+func (s *State) Value() (driver.Value, error) {
 	return s.String(), nil
 }
 
-func (s state) MarshalJSON() ([]byte, error) {
+func (s *State) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
 }
 
-func (s *state) UnmarshalJSON(data []byte) error {
+func (s *State) UnmarshalJSON(data []byte) error {
 	var stateStr string
 	if err := json.Unmarshal(data, &stateStr); err != nil {
 		return err
@@ -157,12 +148,12 @@ func (s *state) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	*s = newState.(state)
+	*s = newState
 	return nil
 }
 
 func ParseState(r string) (State, error) {
-	switch strings.ToUpper(r) {
+	switch strings.ToLower(r) {
 	case "submitted":
 		return StateSubmitted, nil
 	case "proving":
@@ -172,6 +163,6 @@ func ParseState(r string) (State, error) {
 	case "complete":
 		return StateComplete, nil
 	default:
-		return nil, fmt.Errorf("invalid State string: %s", r)
+		return StateUnknown, fmt.Errorf("invalid State string: %s", r)
 	}
 }

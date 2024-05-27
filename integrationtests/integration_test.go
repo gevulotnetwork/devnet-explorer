@@ -70,12 +70,12 @@ func getStats(t *testing.T) {
 
 func receiveFirstEvent(t *testing.T) {
 	events := sseClient(t, "tx-row")
-	notify(t, `{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`)
+	notify(t, `{"state": "submitted","tx_id": "0","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`)
 
 	select {
 	case e := <-events:
-		expected := `<div class="tr" hx-get="/tx/1234" hx-trigger="click" hx-target="#table" hx-swap="outerHTML"><div class="left"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>1234</div></div></div><div class="right"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></div><div class="end"><span class="arrow">→</span></div></div>`
-		require.Contains(t, string(e.Data), expected)
+		expected := `<div id="0" class="tr" hx-get="/tx/0" hx-trigger="click" sse-swap="0" hx-swap="outerHTML"><div class="left"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>0</div></div></div><div class="right"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></div><div class="end"><span class="arrow">→</span></div></div>`
+		require.Equal(t, expected, string(e.Data))
 	case <-time.After(time.Second * 5):
 		t.Fatal("timeout")
 	}
@@ -83,14 +83,14 @@ func receiveFirstEvent(t *testing.T) {
 
 func receiveEventsFromBuffer(t *testing.T) {
 	txs := []string{
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
-		`{"state": "submitted","tx_id": "1234","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "1","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "2","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "3","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "4","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "5","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "6","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "7","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
+		`{"state": "submitted","tx_id": "8","prover_id": "5678","timestamp": "2006-01-02T15:04:05Z"}`,
 	}
 
 	notify(t, txs...)
@@ -103,8 +103,8 @@ func receiveEventsFromBuffer(t *testing.T) {
 	for i := 0; i < expectedEvents; i++ {
 		select {
 		case e := <-events:
-			expected := `<div class="tr" hx-get="/tx/1234" hx-trigger="click" hx-target="#table" hx-swap="outerHTML"><div class="left"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>1234</div></div></div><div class="right"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></div><div class="end"><span class="arrow">→</span></div></div>`
-			assert.Contains(t, string(e.Data), expected)
+			expected := `<div id="%d" class="tr" hx-get="/tx/%d" hx-trigger="click" sse-swap="%d" hx-swap="outerHTML"><div class="left"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>%d</div></div></div><div class="right"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></div><div class="end"><span class="arrow">→</span></div></div>`
+			assert.Equal(t, fmt.Sprintf(expected, i, i, i, i), string(e.Data))
 		case <-time.After(time.Second * 5):
 			t.Fatal("timeout")
 		}

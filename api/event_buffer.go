@@ -46,7 +46,7 @@ func (b *eventBuffer) add(e model.Event, data []byte) {
 		return
 	}
 
-	if e.State.LessThan(old.state) {
+	if e.State < old.state {
 		return
 	}
 

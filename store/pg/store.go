@@ -346,7 +346,7 @@ func stateFromKind(k txKind) model.State {
 	case verification:
 		return model.StateVerifying
 	default:
-		return nil
+		return model.StateUnknown
 	}
 }
 

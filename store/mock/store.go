@@ -151,7 +151,7 @@ func (s *Store) nextEvent() model.Event {
 		info.Log = append(s.eventMap[s.eventQueue[i].TxID].Log, log)
 		s.eventMap[s.eventQueue[i].TxID] = info
 
-	case nil, model.StateComplete:
+	case model.StateUnknown, model.StateComplete:
 		s.eventQueue[i] = randomEvent()
 
 		userID := sha512.Sum512([]byte(time.Now().String()))
