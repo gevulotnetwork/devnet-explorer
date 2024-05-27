@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -43,7 +44,7 @@ func TestServerMultipleClients(t *testing.T) {
 	time.Sleep(time.Second * 1)
 
 	for i := 0; i < numOfEvents; i++ {
-		s.events <- model.Event{}
+		s.events <- model.Event{TxID: fmt.Sprint(i), State: model.StateProving}
 	}
 
 	// Wait that at least half of the clients receive all events.

@@ -1,6 +1,8 @@
 package model
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -18,7 +20,7 @@ type Stats struct {
 }
 
 type Event struct {
-	State     string    `json:"state"`
+	State     State     `json:"state"`
 	TxID      string    `db:"tx_id" json:"tx_id"`
 	ProverID  string    `db:"prover_id" json:"prover_id"`
 	Tag       string    `json:"tag"`
@@ -26,7 +28,7 @@ type Event struct {
 }
 
 type TxInfo struct {
-	State    string        `json:"state"`
+	State    State         `json:"state"`
 	Duration time.Duration `json:"duration"`
 	TxID     string        `json:"tx_id"`
 	UserID   string        `json:"user_id"`
@@ -35,7 +37,7 @@ type TxInfo struct {
 }
 
 type TxLogEvent struct {
-	State     string    `json:"state"`
+	State     State     `json:"state"`
 	IDType    string    `json:"id_type"`
 	ID        string    `json:"id"`
 	Timestamp time.Time `json:"timestamp"`
@@ -89,4 +91,78 @@ func ParseStatsRange(r string) (StatsRange, error) {
 
 func SupportedStatsRanges() []StatsRange {
 	return []StatsRange{RangeWeek, RangeMonth, RangeHalfYear, RangeYear}
+}
+
+type State uint8
+
+const (
+	StateUnknown   State = 0
+	StateSubmitted State = 1
+	StateProving   State = 2
+	StateVerifying State = 3
+	StateComplete  State = 4
+)
+
+func (s *State) String() string {
+	switch *s {
+	case StateSubmitted:
+		return "submitted"
+	case StateProving:
+		return "proving"
+	case StateVerifying:
+		return "verifying"
+	case StateComplete:
+		return "complete"
+	default:
+		return "unknown"
+	}
+}
+
+func (s *State) Scan(value interface{}) error {
+	stateStr, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("incompatible type for State: %T", value)
+	}
+	newState, err := ParseState(stateStr)
+	if err != nil {
+		return err
+	}
+	*s = newState
+	return nil
+}
+
+func (s *State) Value() (driver.Value, error) {
+	return s.String(), nil
+}
+
+func (s *State) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
+}
+
+func (s *State) UnmarshalJSON(data []byte) error {
+	var stateStr string
+	if err := json.Unmarshal(data, &stateStr); err != nil {
+		return err
+	}
+	newState, err := ParseState(stateStr)
+	if err != nil {
+		return err
+	}
+	*s = newState
+	return nil
+}
+
+func ParseState(r string) (State, error) {
+	switch strings.ToLower(r) {
+	case "submitted":
+		return StateSubmitted, nil
+	case "proving":
+		return StateProving, nil
+	case "verifying":
+		return StateVerifying, nil
+	case "complete":
+		return StateComplete, nil
+	default:
+		return StateUnknown, fmt.Errorf("invalid State string: %s", r)
+	}
 }

@@ -313,10 +313,7 @@ func getJobDuration(txs []gevulotTransaction) time.Duration {
 	return end.Sub(begin)
 }
 
-func getState(txs []gevulotTransaction) string {
-	// Submitted is the default state.
-	state := "Submitted"
-
+func getState(txs []gevulotTransaction) model.State {
 	proofs := 0
 	verifications := 0
 
@@ -328,30 +325,32 @@ func getState(txs []gevulotTransaction) string {
 		}
 	}
 
-	if proofs > 0 && verifications == 0 {
-		state = "Proving"
-	} else if verifications > 0 && verifications < 3 {
-		state = "Verifying"
-	} else if verifications > 2 {
-		state = "Complete"
+	switch {
+	case proofs > 0 && verifications == 0:
+		return model.StateProving
+	case verifications > 0 && verifications < 3:
+		return model.StateVerifying
+	case verifications > 2:
+		return model.StateComplete
+	default:
+		return model.StateSubmitted
 	}
+}
 
-	return state
+func stateFromKind(k txKind) model.State {
+	switch k {
+	case run:
+		return model.StateSubmitted
+	case proof:
+		return model.StateProving
+	case verification:
+		return model.StateVerifying
+	default:
+		return model.StateUnknown
+	}
 }
 
 func txLogEventsFromTxs(txs []gevulotTransaction) []model.TxLogEvent {
-	stateFromKind := func(k txKind) string {
-		switch k {
-		case run:
-			return "Submitted"
-		case proof:
-			return "Proving"
-		case verification:
-			return "Verifying"
-		}
-		return ""
-	}
-
 	var events []model.TxLogEvent
 	for _, tx := range txs {
 		e := model.TxLogEvent{
@@ -362,7 +361,7 @@ func txLogEventsFromTxs(txs []gevulotTransaction) []model.TxLogEvent {
 		}
 
 		// Special handling for the Run tx.
-		if e.State == "Submitted" {
+		if e.State == model.StateComplete {
 			e.IDType = "user id"
 		}
 		events = append(events, e)
@@ -376,10 +375,10 @@ func txLogEventsFromTxs(txs []gevulotTransaction) []model.TxLogEvent {
 	// Finalize run job as complete after two verifications.
 	verifications := 0
 	for _, e := range events {
-		if e.State == "Verifying" {
+		if e.State == model.StateVerifying {
 			verifications++
 			if verifications > 2 {
-				e.State = "Complete"
+				e.State = model.StateComplete
 			}
 		}
 	}

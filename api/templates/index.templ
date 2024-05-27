@@ -99,12 +99,12 @@ templ Table(events []model.Event, query url.Values) {
 }
 
 templ Row(e model.Event) {
-	<div class="tr" hx-get={ "/tx/" + e.TxID } hx-trigger="click" hx-target="#table" hx-swap="outerHTML">
+	<div id={ e.TxID } class="tr" hx-get={ "/tx/" + e.TxID } hx-trigger="click" sse-swap={ e.TxID } hx-swap="outerHTML">
 		<div class="left">
 			<div class="td">
 				<div class="mobile-label">State</div>
 				<div>
-					<span class={ "tag", strings.ToLower(e.State) }>{ e.State }</span>
+					<span class={ "tag", strings.ToLower(e.State.String()) }>{ e.State.String() }</span>
 				</div>
 			</div>
 			<div class="td">
@@ -148,7 +148,7 @@ templ TxInfo(tx model.TxInfo) {
 		<div id="tx-info-blocks">
 			<div id="tx-top">
 				<div id="tx-state-block">
-					<div id="tx-current-state">{ tx.State }</div>
+					<div id="tx-current-state">{ tx.State.String() }</div>
 					<div id="tx-duration">{ formatDuration(tx.Duration) }</div>
 				</div>
 				@TxIDBlock(tx.TxID, "Transaction ID")
@@ -194,7 +194,7 @@ templ TxLogEvent(e model.TxLogEvent) {
 		<div class="tx-log-state">
 			<div class="mobile-label">State</div>
 			<div>
-				<span class={ "tag", strings.ToLower(e.State) }>{ e.State }</span>
+				<span class={ "tag", strings.ToLower(e.State.String()) }>{ e.State.String() }</span>
 			</div>
 		</div>
 		<div class="tx-log-id-wrap">

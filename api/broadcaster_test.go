@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ func TestBroadcasterOneClient(t *testing.T) {
 	eg.Go(b.Run)
 
 	ch, unsubscribe := b.Subscribe(api.NoFilter, true)
-	s.events <- model.Event{}
+	s.events <- model.Event{State: model.StateProving}
 	select {
 	case <-ch:
 	case <-time.After(time.Second):
@@ -51,7 +52,7 @@ func TestBroadcasterBuffer(t *testing.T) {
 
 	const numOfEvents = api.BufferSize + 2
 	for i := 0; i < numOfEvents; i++ {
-		s.events <- model.Event{}
+		s.events <- model.Event{TxID: fmt.Sprint(i), State: model.StateProving}
 	}
 
 	// Give server some time to buffer events.
@@ -119,7 +120,7 @@ func TestBroadcasterStuckClient(t *testing.T) {
 
 	<-ready
 	for i := 0; i < numOfEvents; i++ {
-		s.events <- model.Event{}
+		s.events <- model.Event{State: model.StateProving}
 	}
 
 	<-done
@@ -167,7 +168,7 @@ func TestBroadcasterRetry(t *testing.T) {
 
 	<-ready
 	for i := 0; i < numOfEvents; i++ {
-		s.events <- model.Event{}
+		s.events <- model.Event{State: model.StateProving}
 	}
 
 	<-done
