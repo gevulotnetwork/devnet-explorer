@@ -137,18 +137,33 @@ func (s *Store) Run() error {
 
 // Stats returns stats for the given time range.
 func (s *Store) Stats(r model.StatsRange) (model.Stats, error) {
-	// TODO: Get percentages for stats.
-	// TODO: Get stats only for the given range.
-
-	const query = `
+	const statsQuery = `
 	SELECT
-		(SELECT COUNT(*) FROM acl_whitelist) as RegisteredUsers,
-		(SELECT COUNT(DISTINCT(prover)) FROM deploy) as ProversDeployed,
-		(SELECT COUNT(*) FROM transaction WHERE kind = 'proof') as ProofsGenerated,
-		(SELECT COUNT(*) FROM transaction WHERE kind = 'verification') as ProofsVerified;`
+		(SELECT COUNT(*) FROM acl_whitelist) as registered_users,
+		(SELECT COUNT(DISTINCT(prover)) FROM deploy) as proofs_generated,
+		(SELECT COUNT(*) FROM transaction WHERE kind = 'proof') as programs,
+		(SELECT COUNT(*) FROM transaction WHERE kind = 'verification') as proofs_verified;`
 
 	var stats model.Stats
-	if err := s.db.SelectOne(&stats, query); err != nil {
+	if err := s.db.SelectOne(&stats, statsQuery); err != nil {
+		return stats, err
+	}
+
+	const deltaQuery = `
+	SELECT
+		registered_users AS registered_users_delta,
+		proofs_generated AS proofs_generated_delta,
+		programs AS programs_delta,
+		proofs_verified AS proofs_verified_delta
+	FROM
+		delta_stats
+	WHERE
+		range = $1;
+	ORDER BY
+		created_at DESC
+	LIMIT 1`
+
+	if err := s.db.SelectOne(&stats, deltaQuery, r.String()); err != nil {
 		return stats, err
 	}
 
