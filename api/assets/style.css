@@ -58,6 +58,10 @@
   font-family: Inter;
 }
 
+a {
+  all: unset;
+}
+
 body {
   text-transform: uppercase;
   margin: 0;
@@ -106,6 +110,7 @@ body.dark {
   width: 50%;
   max-height: 18px;
   margin-bottom: 12px;
+  cursor: pointer;
 }
 
 #live {
@@ -1028,6 +1033,10 @@ body.dark .tx-id-block-copy svg path {
   .right>.td:nth-child(2) {
     order: 2;
     min-width: 0px;
+  }
+
+  .tr>.end {
+    display: none;
   }
 
   .tx-id-block-value {

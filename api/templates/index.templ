@@ -99,8 +99,8 @@ templ Table(events []model.Event, query url.Values) {
 }
 
 templ Row(e model.Event) {
-	<div id={ e.TxID } class="tr" hx-get={ "/tx/" + e.TxID } hx-trigger="click" sse-swap={ e.TxID } hx-swap="outerHTML">
-		<div class="left">
+	<div id={ e.TxID } class="tr" sse-swap={ e.TxID } hx-swap="outerHTML">
+		<a class="left" { txLinkAttrs(e.TxID)... }>
 			<div class="td">
 				<div class="mobile-label">State</div>
 				<div>
@@ -111,8 +111,8 @@ templ Row(e model.Event) {
 				<div class="mobile-label">Transaction ID</div>
 				<div>{ e.TxID }</div>
 			</div>
-		</div>
-		<div class="right">
+		</a>
+		<a class="right" { txLinkAttrs(e.TxID)... }>
 			<div class="td">
 				<div class="mobile-label">Prover ID</div>
 				<div>
@@ -128,10 +128,10 @@ templ Row(e model.Event) {
 					<span class="datetime">{ e.Timestamp.Format("03:04 PM, 02/01/06") }</span>
 				</div>
 			</div>
-		</div>
-		<div class="end">
+		</a>
+		<a class="end" { txLinkAttrs(e.TxID)... }>
 			<span class="arrow">→</span>
-		</div>
+		</a>
 	</div>
 }
 
@@ -245,7 +245,7 @@ templ head() {
 
 templ header() {
 	<div id="header">
-		<div id="logo">Gevulot</div>
+		<a id="logo" href="/">Gevulot</a>
 		<div id="live">Live<span class="dot"></span></div>
 		<div id="range">
 			<form
@@ -331,4 +331,14 @@ func formatDuration(d time.Duration) string {
 	minute := int(d.Minutes()) % 60
 	second := int(d.Seconds()) % 60
 	return fmt.Sprintf("%02dH:%02dM:%02dS", hour, minute, second)
+}
+
+func txLinkAttrs(txID string) templ.Attributes {
+	return templ.Attributes{
+		"href":       "/tx/" + txID,
+		"hx-trigger": "click",
+		"hx-get":     "/tx/" + txID,
+		"hx-swap":    "outerHTML",
+		"hx-target":  "#table",
+	}
 }

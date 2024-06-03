@@ -74,7 +74,7 @@ func receiveFirstEvent(t *testing.T) {
 
 	select {
 	case e := <-events:
-		expected := `<div id="0" class="tr" hx-get="/tx/0" hx-trigger="click" sse-swap="0" hx-swap="outerHTML"><div class="left"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>0</div></div></div><div class="right"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></div><div class="end"><span class="arrow">→</span></div></div>`
+		expected := `<div id="0" class="tr" sse-swap="0" hx-swap="outerHTML"><a class="left" href="/tx/0" hx-get="/tx/0" hx-swap="outerHTML" hx-target="#table" hx-trigger="click"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>0</div></div></a> <a class="right" href="/tx/0" hx-get="/tx/0" hx-swap="outerHTML" hx-target="#table" hx-trigger="click"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></a> <a class="end" href="/tx/0" hx-get="/tx/0" hx-swap="outerHTML" hx-target="#table" hx-trigger="click"><span class="arrow">→</span></a></div>`
 		require.Equal(t, expected, string(e.Data))
 	case <-time.After(time.Second * 5):
 		t.Fatal("timeout")
@@ -103,8 +103,8 @@ func receiveEventsFromBuffer(t *testing.T) {
 	for i := 0; i < expectedEvents; i++ {
 		select {
 		case e := <-events:
-			expected := `<div id="%d" class="tr" hx-get="/tx/%d" hx-trigger="click" sse-swap="%d" hx-swap="outerHTML"><div class="left"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>%d</div></div></div><div class="right"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></div><div class="end"><span class="arrow">→</span></div></div>`
-			assert.Equal(t, fmt.Sprintf(expected, i, i, i, i), string(e.Data))
+			expected := `<div id="%d" class="tr" sse-swap="%d" hx-swap="outerHTML"><a class="left" href="/tx/%d" hx-get="/tx/%d" hx-swap="outerHTML" hx-target="#table" hx-trigger="click"><div class="td"><div class="mobile-label">State</div><div><span class="tag submitted">submitted</span></div></div><div class="td"><div class="mobile-label">Transaction ID</div><div>%d</div></div></a> <a class="right" href="/tx/%d" hx-get="/tx/%d" hx-swap="outerHTML" hx-target="#table" hx-trigger="click"><div class="td"><div class="mobile-label">Prover ID</div><div><span>5678</span></div></div><div class="td"><div class="mobile-label">Time</div><div><span class="datetime">03:04 PM, 02/01/06</span></div></div></a> <a class="end" href="/tx/%d" hx-get="/tx/%d" hx-swap="outerHTML" hx-target="#table" hx-trigger="click"><span class="arrow">→</span></a></div>`
+			assert.Equal(t, fmt.Sprintf(expected, i, i, i, i, i, i, i, i, i), string(e.Data))
 		case <-time.After(time.Second * 5):
 			t.Fatal("timeout")
 		}
