@@ -9,14 +9,14 @@ import (
 )
 
 type Stats struct {
-	RegisteredUsers      uint64  `json:"registered_users"`
-	ProofsGenerated      uint64  `json:"proofs_generated"`
-	ProversDeployed      uint64  `json:"programs"`
-	ProofsVerified       uint64  `json:"proofs_verified"`
-	RegisteredUsersDelta float64 `json:"registered_users_delta"`
-	ProofsGeneratedDelta float64 `json:"proofs_generated_delta"`
-	ProversDeployedDelta float64 `json:"programs_delta"`
-	ProofsVerifiedDelta  float64 `json:"proofs_verified_delta"`
+	RegisteredUsers      uint64  `json:"registered_users" db:"registered_users"`
+	ProofsGenerated      uint64  `json:"proofs_generated" db:"proofs_generated"`
+	ProversDeployed      uint64  `json:"programs" db:"programs"`
+	ProofsVerified       uint64  `json:"proofs_verified" db:"proofs_verified"`
+	RegisteredUsersDelta float64 `json:"registered_users_delta" db:"registered_users_delta"`
+	ProofsGeneratedDelta float64 `json:"proofs_generated_delta" db:"proofs_generated_delta"`
+	ProversDeployedDelta float64 `json:"programs_delta" db:"programs_delta"`
+	ProofsVerifiedDelta  float64 `json:"proofs_verified_delta" db:"proofs_verified_delta"`
 }
 
 type Event struct {
