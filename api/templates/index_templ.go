@@ -323,15 +323,7 @@ func Row(e model.Event) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"tr\" hx-get=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString("/tx/" + e.TxID))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-trigger=\"click\" sse-swap=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"tr\" sse-swap=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -339,7 +331,15 @@ func Row(e model.Event) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"outerHTML\"><div class=\"left\"><div class=\"td\"><div class=\"mobile-label\">State</div><div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"outerHTML\"><a class=\"left\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, txLinkAttrs(e.TxID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("><div class=\"td\"><div class=\"mobile-label\">State</div><div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -382,7 +382,15 @@ func Row(e model.Event) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div><div class=\"right\"><div class=\"td\"><div class=\"mobile-label\">Prover ID</div><div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></a> <a class=\"right\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, txLinkAttrs(e.TxID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("><div class=\"td\"><div class=\"mobile-label\">Prover ID</div><div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -431,7 +439,15 @@ func Row(e model.Event) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></div></div></div><div class=\"end\"><span class=\"arrow\">→</span></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></div></div></a> <a class=\"end\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, txLinkAttrs(e.TxID))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("><span class=\"arrow\">→</span></a></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -792,7 +808,7 @@ func header() templ.Component {
 			templ_7745c5c3_Var37 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><div id=\"logo\">Gevulot</div><div id=\"live\">Live<span class=\"dot\"></span></div><div id=\"range\"><form id=\"range-form\" hx-get=\"/api/v1/stats\" hx-trigger=\"load, change, every 5s\" hx-target=\"#stats\" hx-swap=\"outerHTML\"><input type=\"radio\" id=\"1w\" name=\"range\" value=\"1w\" checked=\"checked\"> <label for=\"1w\" class=\"range-selector\">1w</label> <input type=\"radio\" id=\"1m\" name=\"range\" value=\"1m\"> <label for=\"1m\" class=\"range-selector\">1m</label> <input type=\"radio\" id=\"6m\" name=\"range\" value=\"6m\"> <label for=\"6m\" class=\"range-selector\">6m</label> <input type=\"radio\" id=\"1y\" name=\"range\" value=\"1y\"> <label for=\"1y\" class=\"range-selector\">1y</label></form></div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div><div id=\"mode\"><div id=\"mode-wrap\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"><div id=\"mode-left-wrap\"><span id=\"light-dot\" class=\"dot\"></span> <span id=\"light\">Light</span></div><div id=\"mode-right-wrap\"><span id=\"dark-dot\" class=\"dot\"></span> <span id=\"dark\">Dark</span></div></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"header\"><a id=\"logo\" href=\"/\">Gevulot</a><div id=\"live\">Live<span class=\"dot\"></span></div><div id=\"range\"><form id=\"range-form\" hx-get=\"/api/v1/stats\" hx-trigger=\"load, change, every 5s\" hx-target=\"#stats\" hx-swap=\"outerHTML\"><input type=\"radio\" id=\"1w\" name=\"range\" value=\"1w\" checked=\"checked\"> <label for=\"1w\" class=\"range-selector\">1w</label> <input type=\"radio\" id=\"1m\" name=\"range\" value=\"1m\"> <label for=\"1m\" class=\"range-selector\">1m</label> <input type=\"radio\" id=\"6m\" name=\"range\" value=\"6m\"> <label for=\"6m\" class=\"range-selector\">6m</label> <input type=\"radio\" id=\"1y\" name=\"range\" value=\"1y\"> <label for=\"1y\" class=\"range-selector\">1y</label></form></div><div id=\"search\"><input type=\"text\" id=\"search-input\" placeholder=\"Search\" type=\"text\" name=\"q\" hx-get=\"/api/v1/events\" hx-trigger=\"keyup changed delay:500ms\" hx-target=\"#table\"></div><div id=\"mode\"><div id=\"mode-wrap\" hx-on:click=\"htmx.toggleClass(htmx.find(&#39;body&#39;), &#39;dark&#39;);\"><div id=\"mode-left-wrap\"><span id=\"light-dot\" class=\"dot\"></span> <span id=\"light\">Light</span></div><div id=\"mode-right-wrap\"><span id=\"dark-dot\" class=\"dot\"></span> <span id=\"dark\">Dark</span></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -871,4 +887,14 @@ func formatDuration(d time.Duration) string {
 	minute := int(d.Minutes()) % 60
 	second := int(d.Seconds()) % 60
 	return fmt.Sprintf("%02dH:%02dM:%02dS", hour, minute, second)
+}
+
+func txLinkAttrs(txID string) templ.Attributes {
+	return templ.Attributes{
+		"href":       "/tx/" + txID,
+		"hx-trigger": "click",
+		"hx-get":     "/tx/" + txID,
+		"hx-swap":    "outerHTML",
+		"hx-target":  "#table",
+	}
 }
