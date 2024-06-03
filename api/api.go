@@ -57,15 +57,13 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) index(w http.ResponseWriter, r *http.Request) {
-	// nolint:errcheck
-	if pusher, ok := w.(http.Pusher); ok {
-		pusher.Push("/assets/style.css", nil)
-		pusher.Push("/assets/htmx.min.js", nil)
-		pusher.Push("/assets/sse.js", nil)
-		pusher.Push("/assets/Inter-Regular.ttf", nil)
-		pusher.Push("/assets/Inter-Bold.ttf", nil)
-		pusher.Push("/assets/Inter-SemiBold.ttf", nil)
+	if r.Header.Get("Hx-Request") == "true" {
+		w.Header().Set("HX-Push-Url", r.URL.EscapedPath())
+		a.table(w, r)
+		return
 	}
+
+	push(w)
 	if err := templates.Index().Render(r.Context(), w); err != nil {
 		slog.Error("failed to render index", slog.Any("err", err))
 	}
@@ -87,15 +85,7 @@ func (a *API) txPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// nolint:errcheck
-	if pusher, ok := w.(http.Pusher); ok {
-		pusher.Push("/assets/style.css", nil)
-		pusher.Push("/assets/htmx.min.js", nil)
-		pusher.Push("/assets/sse.js", nil)
-		pusher.Push("/assets/Inter-Regular.ttf", nil)
-		pusher.Push("/assets/Inter-Bold.ttf", nil)
-		pusher.Push("/assets/Inter-SemiBold.ttf", nil)
-	}
+	push(w)
 
 	if err := templates.TxPage(txInfo).Render(r.Context(), w); err != nil {
 		slog.Error("failed to render TxPage", slog.Any("err", err))
@@ -192,4 +182,16 @@ func SearchFilter(f string, since time.Time) Filter {
 
 func NoFilter(e model.Event) bool {
 	return true
+}
+
+func push(w http.ResponseWriter) {
+	// nolint:errcheck
+	if pusher, ok := w.(http.Pusher); ok {
+		pusher.Push("/assets/style.css", nil)
+		pusher.Push("/assets/htmx.min.js", nil)
+		pusher.Push("/assets/sse.js", nil)
+		pusher.Push("/assets/Inter-Regular.ttf", nil)
+		pusher.Push("/assets/Inter-Bold.ttf", nil)
+		pusher.Push("/assets/Inter-SemiBold.ttf", nil)
+	}
 }

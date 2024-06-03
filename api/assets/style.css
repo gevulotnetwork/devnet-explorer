@@ -670,6 +670,20 @@ input:checked+.slider:before {
   margin: 10px;
 }
 
+.tx-info-header>a {
+  float: right;
+  cursor: pointer;
+}
+
+.tx-info-header svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tx-info-header svg path {
+  fill: #808080
+}
+
 #tx-info-blocks {
   display: flex;
   flex-direction: row;
@@ -857,8 +871,8 @@ body.dark .tx-log-row:nth-last-child(odd) {
   display: flex;
   margin-right: 10px;
   margin-left: auto;
-  min-width: 158px;
-  max-width: 158px;
+  min-width: 160px;
+  max-width: 160px;
 }
 
 .tx-log-timestamp span {
