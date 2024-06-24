@@ -17,7 +17,7 @@ templ Index() {
 		<body>
 			<div id="container">
 				@header()
-				@Stats(model.Stats{})
+				@Stats(model.CombinedStats{})
 				@Table(nil, url.Values{})
 				@footer()
 			</div>
@@ -32,7 +32,7 @@ templ TxPage(tx model.TxInfo) {
 		<body>
 			<div id="container">
 				@header()
-				@Stats(model.Stats{})
+				@Stats(model.CombinedStats{})
 				@Tx(tx)
 				@footer()
 			</div>
@@ -40,37 +40,37 @@ templ TxPage(tx model.TxInfo) {
 	</html>
 }
 
-templ Stats(stats model.Stats) {
+templ Stats(stats model.CombinedStats) {
 	<div id="stats">
 		<div id="left-stats">
 			<div class="number-block">
-				<div class="rolling-number" id="registered_users">{ format(stats.RegisteredUsers) }</div>
+				<div class="rolling-number" id="registered_users">{ format(stats.Stats.RegisteredUsers) }</div>
 				<div class="stat-bottom-row">
 					<div class="number-title">Registered Users</div>
-					<div class="stat-delta">{ formatPercentage(stats.RegisteredUsersDelta) }</div>
+					<div class="stat-delta">{ formatPercentage(stats.DeltaStats.RegisteredUsers) }</div>
 				</div>
 			</div>
 			<div class="number-block">
-				<div class="rolling-number" id="provers_deployed">{ format(stats.ProversDeployed) }</div>
+				<div class="rolling-number" id="provers_deployed">{ format(stats.Stats.ProversDeployed) }</div>
 				<div class="stat-bottom-row">
 					<div class="number-title">Provers Deployed</div>
-					<div class="stat-delta">{ formatPercentage(stats.ProversDeployedDelta) }</div>
+					<div class="stat-delta">{ formatPercentage(stats.DeltaStats.ProversDeployed) }</div>
 				</div>
 			</div>
 		</div>
 		<div id="right-stats">
 			<div class="number-block">
-				<div class="rolling-number" id="proofs_generated">{ format(stats.ProofsGenerated) }</div>
+				<div class="rolling-number" id="proofs_generated">{ format(stats.Stats.ProofsGenerated) }</div>
 				<div class="stat-bottom-row">
 					<div class="number-title">Proofs Generated</div>
-					<div class="stat-delta">{ formatPercentage(stats.ProofsGeneratedDelta) }</div>
+					<div class="stat-delta">{ formatPercentage(stats.DeltaStats.ProofsGenerated) }</div>
 				</div>
 			</div>
 			<div class="number-block">
-				<div class="rolling-number" id="proofs_verified">{ format(stats.ProofsVerified) }</div>
+				<div class="rolling-number" id="proofs_verified">{ format(stats.Stats.ProofsVerified) }</div>
 				<div class="stat-bottom-row">
 					<div class="number-title">Proof Verifications</div>
-					<div class="stat-delta">{ formatPercentage(stats.ProofsVerifiedDelta) }</div>
+					<div class="stat-delta">{ formatPercentage(stats.DeltaStats.ProofsVerified) }</div>
 				</div>
 			</div>
 		</div>
