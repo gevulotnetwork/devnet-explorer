@@ -18,14 +18,14 @@ import (
 
 type Store interface {
 	Search(filter string) ([]model.Event, error)
-	Stats(model.StatsRange) (model.Stats, error)
+	Stats(model.StatsRange) (model.CombinedStats, error)
 	Events() <-chan model.Event
 	TxInfo(id string) (model.TxInfo, error)
 	Runnable
 }
 
 type CachedStore interface {
-	CachedStats(model.StatsRange) model.Stats
+	CachedStats(model.StatsRange) model.CombinedStats
 }
 
 type CombinedStore struct {
@@ -81,7 +81,6 @@ type Config struct {
 	LogLevel         slog.Level    `envconfig:"LOG_LEVEL" default:"info"`
 }
 
-// TODO: Proper config parsing
 func ParseConfig(args ...string) (Config, error) {
 	var c Config
 	if err := envconfig.Process("", &c); err != nil {

@@ -136,38 +136,47 @@ func (s *Store) Run() error {
 }
 
 // Stats returns stats for the given time range.
-func (s *Store) Stats(r model.StatsRange) (model.Stats, error) {
-	const statsQuery = `
+func (s *Store) Stats(r model.StatsRange) (model.CombinedStats, error) {
+	const currentStatsQuery = `
 	SELECT
 		(SELECT COUNT(*) FROM acl_whitelist) as registered_users,
 		(SELECT COUNT(DISTINCT(prover)) FROM deploy) as proofs_generated,
 		(SELECT COUNT(*) FROM transaction WHERE kind = 'proof') as programs,
 		(SELECT COUNT(*) FROM transaction WHERE kind = 'verification') as proofs_verified;`
 
-	var stats model.Stats
-	if err := s.db.SelectOne(&stats, statsQuery); err != nil {
-		return stats, err
+	var combinedStats model.CombinedStats
+	if err := s.db.SelectOne(&combinedStats, currentStatsQuery); err != nil {
+		return combinedStats, err
 	}
+	combinedStats.Stats.CreatedAt = time.Now()
 
-	const deltaQuery = `
+	// Get oldest record within the given time range.
+	const oldStatsQuery = `
 	SELECT
-		registered_users AS registered_users_delta,
-		proofs_generated AS proofs_generated_delta,
-		programs AS programs_delta,
-		proofs_verified AS proofs_verified_delta
+		*
 	FROM
-		delta_stats
+		daily_stats
 	WHERE
-		range = $1;
+		created_at > $1;
 	ORDER BY
-		created_at DESC
+		created_at ASC
 	LIMIT 1`
 
-	if err := s.db.SelectOne(&stats, deltaQuery, r.String()); err != nil {
-		return stats, err
+	var oldStats model.Stats
+	err := s.db.SelectOne(&oldStats, oldStatsQuery, r.Since())
+	if errors.Is(err, sql.ErrNoRows) {
+		return combinedStats, nil
 	}
 
-	return stats, nil
+	if err != nil {
+		return model.CombinedStats{}, err
+	}
+
+	combinedStats.DeltaStats.ProofsGenerated = (float64(oldStats.ProofsGenerated) / float64(combinedStats.Stats.ProofsGenerated-oldStats.ProofsGenerated)) * 100
+	combinedStats.DeltaStats.ProofsVerified = (float64(oldStats.ProofsVerified) / float64(combinedStats.Stats.ProofsVerified-oldStats.ProofsVerified)) * 100
+	combinedStats.DeltaStats.ProversDeployed = (float64(oldStats.ProversDeployed) / float64(combinedStats.Stats.ProversDeployed-oldStats.ProversDeployed)) * 100
+	combinedStats.DeltaStats.RegisteredUsers = (float64(oldStats.RegisteredUsers) / float64(combinedStats.Stats.RegisteredUsers-oldStats.RegisteredUsers)) * 100
+	return combinedStats, nil
 }
 
 func (s *Store) Search(filter string) ([]model.Event, error) {
@@ -299,6 +308,24 @@ func (s *Store) TxInfo(id string) (model.TxInfo, error) {
 	}
 
 	return info, nil
+}
+
+func (s *Store) LatestDailyStats() (model.Stats, error) {
+	const statsQuery = `
+		SELECT * FROM daily_stats
+		ORDER BY created_at DESC
+		LIMIT 1;`
+
+	var stats model.Stats
+	if err := s.db.SelectOne(&stats, statsQuery); err != nil {
+		return model.Stats{}, err
+	}
+
+	return stats, nil
+}
+
+func (s *Store) AggregateStats(time.Time) error {
+	return nil
 }
 
 func (s *Store) Events() <-chan model.Event {

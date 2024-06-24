@@ -6,10 +6,10 @@ import (
 	_ "time/tzdata"
 
 	_ "github.com/KimMachineGun/automemlimit"
-	"github.com/kelseyhightower/envconfig"
 	_ "go.uber.org/automaxprocs"
 
 	"github.com/gevulotnetwork/devnet-explorer/app"
+	"github.com/kelseyhightower/envconfig"
 )
 
 func init() {

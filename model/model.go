@@ -3,20 +3,32 @@ package model
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 )
 
+var ErrNotFound = errors.New("not found")
+
 type Stats struct {
-	RegisteredUsers      uint64  `json:"registered_users" db:"registered_users"`
-	ProofsGenerated      uint64  `json:"proofs_generated" db:"proofs_generated"`
-	ProversDeployed      uint64  `json:"programs" db:"programs"`
-	ProofsVerified       uint64  `json:"proofs_verified" db:"proofs_verified"`
-	RegisteredUsersDelta float64 `json:"registered_users_delta" db:"registered_users_delta"`
-	ProofsGeneratedDelta float64 `json:"proofs_generated_delta" db:"proofs_generated_delta"`
-	ProversDeployedDelta float64 `json:"programs_delta" db:"programs_delta"`
-	ProofsVerifiedDelta  float64 `json:"proofs_verified_delta" db:"proofs_verified_delta"`
+	CreatedAt       time.Time `json:"created_at" db:"created_at"`
+	RegisteredUsers uint64    `json:"registered_users" db:"registered_users"`
+	ProofsGenerated uint64    `json:"proofs_generated" db:"proofs_generated"`
+	ProversDeployed uint64    `json:"programs" db:"programs"`
+	ProofsVerified  uint64    `json:"proofs_verified" db:"proofs_verified"`
+}
+
+type DeltaStats struct {
+	RegisteredUsers float64 `json:"registered_users_delta" db:"registered_users_delta"`
+	ProofsGenerated float64 `json:"proofs_generated_delta" db:"proofs_generated_delta"`
+	ProversDeployed float64 `json:"programs_delta" db:"programs_delta"`
+	ProofsVerified  float64 `json:"proofs_verified_delta" db:"proofs_verified_delta"`
+}
+
+type CombinedStats struct {
+	Stats
+	DeltaStats
 }
 
 type Event struct {
@@ -45,6 +57,7 @@ type TxLogEvent struct {
 
 type StatsRange interface {
 	String() string
+	Since() time.Time
 	sr()
 }
 
@@ -62,6 +75,21 @@ func (s sr) String() string {
 		return "1y"
 	default:
 		return ""
+	}
+}
+
+func (s sr) Since() time.Time {
+	switch s {
+	case RangeWeek:
+		return time.Now().AddDate(0, 0, -7)
+	case RangeMonth:
+		return time.Now().AddDate(0, -1, 0)
+	case RangeHalfYear:
+		return time.Now().AddDate(0, -6, 0)
+	case RangeYear:
+		return time.Now().AddDate(-1, 0, 0)
+	default:
+		return time.Time{}
 	}
 }
 
