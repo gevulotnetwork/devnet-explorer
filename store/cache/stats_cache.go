@@ -10,7 +10,7 @@ import (
 )
 
 type StatsStore interface {
-	Stats(model.StatsRange) (model.Stats, error)
+	Stats(model.StatsRange) (model.CombinedStats, error)
 }
 
 type Cache struct {
@@ -20,7 +20,7 @@ type Cache struct {
 	stats    atomic.Value
 }
 
-type statsMap map[model.StatsRange]model.Stats
+type statsMap map[model.StatsRange]model.CombinedStats
 
 func NewStatsCache(s StatsStore, interval time.Duration) *Cache {
 	return &Cache{
@@ -68,6 +68,6 @@ func (s *Cache) refresh() error {
 	return nil
 }
 
-func (s *Cache) CachedStats(r model.StatsRange) model.Stats {
+func (s *Cache) CachedStats(r model.StatsRange) model.CombinedStats {
 	return s.stats.Load().(statsMap)[r]
 }
