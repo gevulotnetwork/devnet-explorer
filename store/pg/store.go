@@ -145,7 +145,7 @@ func (s *Store) Stats(r model.StatsRange) (model.CombinedStats, error) {
 		(SELECT COUNT(*) FROM transaction WHERE kind = 'verification') as proofs_verified;`
 
 	var combinedStats model.CombinedStats
-	if err := s.db.SelectOne(&combinedStats, currentStatsQuery); err != nil {
+	if err := s.db.SelectOne(&combinedStats.Stats, currentStatsQuery); err != nil {
 		return combinedStats, err
 	}
 	combinedStats.Stats.CreatedAt = time.Now()
@@ -155,9 +155,9 @@ func (s *Store) Stats(r model.StatsRange) (model.CombinedStats, error) {
 	SELECT
 		*
 	FROM
-		daily_stats
+		delta_stats
 	WHERE
-		created_at > $1;
+	created_at > $1
 	ORDER BY
 		created_at ASC
 	LIMIT 1`
