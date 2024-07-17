@@ -135,20 +135,29 @@ func (s *Store) Run() error {
 	})
 }
 
+func (s *Store) CurrentStats() (model.Stats, error) {
+	const currentStatsQuery = `
+		SELECT
+			(SELECT COUNT(*) FROM acl_whitelist) as registered_users,
+			(SELECT COUNT(DISTINCT(prover)) FROM deploy) as proofs_generated,
+			(SELECT COUNT(*) FROM transaction WHERE kind = 'proof') as programs,
+			(SELECT COUNT(*) FROM transaction WHERE kind = 'verification') as proofs_verified;`
+
+	var stats model.Stats
+	if err := s.db.SelectOne(&stats, currentStatsQuery); err != nil {
+		return model.Stats{}, err
+	}
+
+	stats.CreatedAt = time.Now()
+	return stats, nil
+}
+
 // Stats returns stats for the given time range.
 func (s *Store) Stats(r model.StatsRange) (model.CombinedStats, error) {
-	const currentStatsQuery = `
-	SELECT
-		(SELECT COUNT(*) FROM acl_whitelist) as registered_users,
-		(SELECT COUNT(DISTINCT(prover)) FROM deploy) as proofs_generated,
-		(SELECT COUNT(*) FROM transaction WHERE kind = 'proof') as programs,
-		(SELECT COUNT(*) FROM transaction WHERE kind = 'verification') as proofs_verified;`
-
-	var combinedStats model.CombinedStats
-	if err := s.db.SelectOne(&combinedStats.Stats, currentStatsQuery); err != nil {
-		return combinedStats, err
+	stats, err := s.CurrentStats()
+	if err != nil {
+		return model.CombinedStats{}, fmt.Errorf("failed to get current stats: %w", err)
 	}
-	combinedStats.Stats.CreatedAt = time.Now()
 
 	// Get oldest record within the given time range.
 	const oldStatsQuery = `
@@ -163,20 +172,24 @@ func (s *Store) Stats(r model.StatsRange) (model.CombinedStats, error) {
 	LIMIT 1`
 
 	var oldStats model.Stats
-	err := s.db.SelectOne(&oldStats, oldStatsQuery, r.Since())
+	err = s.db.SelectOne(&oldStats, oldStatsQuery, r.Since())
 	if errors.Is(err, sql.ErrNoRows) {
-		return combinedStats, nil
+		return model.CombinedStats{}, nil
 	}
 
 	if err != nil {
-		return model.CombinedStats{}, err
+		return model.CombinedStats{}, fmt.Errorf("failed to get old stats: %w", err)
 	}
 
-	combinedStats.DeltaStats.ProofsGenerated = (float64(oldStats.ProofsGenerated) / float64(combinedStats.Stats.ProofsGenerated-oldStats.ProofsGenerated)) * 100
-	combinedStats.DeltaStats.ProofsVerified = (float64(oldStats.ProofsVerified) / float64(combinedStats.Stats.ProofsVerified-oldStats.ProofsVerified)) * 100
-	combinedStats.DeltaStats.ProversDeployed = (float64(oldStats.ProversDeployed) / float64(combinedStats.Stats.ProversDeployed-oldStats.ProversDeployed)) * 100
-	combinedStats.DeltaStats.RegisteredUsers = (float64(oldStats.RegisteredUsers) / float64(combinedStats.Stats.RegisteredUsers-oldStats.RegisteredUsers)) * 100
-	return combinedStats, nil
+	return model.CombinedStats{
+		Stats: stats,
+		DeltaStats: model.DeltaStats{
+			ProofsGenerated: (float64(oldStats.ProofsGenerated) / float64(stats.ProofsGenerated-oldStats.ProofsGenerated)) * 100,
+			ProofsVerified:  (float64(oldStats.ProofsVerified) / float64(stats.ProofsVerified-oldStats.ProofsVerified)) * 100,
+			ProversDeployed: (float64(oldStats.ProversDeployed) / float64(stats.ProversDeployed-oldStats.ProversDeployed)) * 100,
+			RegisteredUsers: (float64(oldStats.RegisteredUsers) / float64(stats.RegisteredUsers-oldStats.RegisteredUsers)) * 100,
+		},
+	}, nil
 }
 
 func (s *Store) Search(filter string) ([]model.Event, error) {
@@ -324,7 +337,22 @@ func (s *Store) LatestDailyStats() (model.Stats, error) {
 	return stats, nil
 }
 
-func (s *Store) AggregateStats(time.Time) error {
+func (s *Store) AggregateStats(t time.Time) error {
+	stats, err := s.CurrentStats()
+	if err != nil {
+		return fmt.Errorf("failed to get current stats: %w", err)
+	}
+
+	const query = `
+		INSERT INTO
+			daily_stats (created_at, registered_users, proofs_generated, programs, proofs_verified)
+		VALUES
+			(:$1, :$2, :$3, :$4, :$5);`
+
+	_, err = s.db.Exec(query, t, stats.RegisteredUsers, stats.ProofsGenerated, stats.ProversDeployed, stats.ProofsVerified)
+	if err != nil {
+		return fmt.Errorf("failed to insert daily stats: %w", err)
+	}
 	return nil
 }
 
