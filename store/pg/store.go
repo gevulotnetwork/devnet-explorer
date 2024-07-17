@@ -155,9 +155,9 @@ func (s *Store) Stats(r model.StatsRange) (model.CombinedStats, error) {
 	SELECT
 		*
 	FROM
-		delta_stats
+		daily_stats
 	WHERE
-	created_at > $1
+		created_at > $1
 	ORDER BY
 		created_at ASC
 	LIMIT 1`

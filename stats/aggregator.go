@@ -15,9 +15,8 @@ type Store interface {
 }
 
 type Aggregator struct {
-	store   Store
-	lastRan time.Time
-	done    chan struct{}
+	store Store
+	done  chan struct{}
 }
 
 func NewAggregator(store Store) *Aggregator {
@@ -32,7 +31,7 @@ func (a *Aggregator) Run() error {
 	if err != nil && !errors.Is(err, model.ErrNotFound) {
 		return fmt.Errorf("failed to get latest aggregated stats: %w", err)
 	}
-	a.lastRan = s.CreatedAt
+	lastRan := s.CreatedAt
 
 	t := time.NewTicker(time.Minute)
 	defer t.Stop()
@@ -41,12 +40,13 @@ func (a *Aggregator) Run() error {
 		select {
 		case <-t.C:
 			now := time.Now()
-			if now.Day() > a.lastRan.Day() {
+			if now.Day() > lastRan.Day() {
+				slog.Info("aggregating stats", slog.Time("last_ran", lastRan), slog.Time("now", now))
 				if err := a.store.AggregateStats(now); err != nil {
 					slog.Error("failed to aggregate stats", slog.String("error", err.Error()))
 					continue
 				}
-				a.lastRan = now
+				lastRan = now
 			}
 
 		case <-a.done:
