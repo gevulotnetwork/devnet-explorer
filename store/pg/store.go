@@ -139,8 +139,8 @@ func (s *Store) CurrentStats() (model.Stats, error) {
 	const currentStatsQuery = `
 		SELECT
 			(SELECT COUNT(*) FROM acl_whitelist) as registered_users,
-			(SELECT COUNT(DISTINCT(prover)) FROM deploy) as proofs_generated,
-			(SELECT COUNT(*) FROM transaction WHERE kind = 'proof') as programs,
+			(SELECT COUNT(DISTINCT(prover)) FROM deploy) as programs,
+			(SELECT COUNT(*) FROM transaction WHERE kind = 'proof') as proofs_generated,
 			(SELECT COUNT(*) FROM transaction WHERE kind = 'verification') as proofs_verified;`
 
 	var stats model.Stats
