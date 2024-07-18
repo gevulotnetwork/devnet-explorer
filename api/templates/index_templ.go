@@ -871,7 +871,15 @@ const suffixes = " kMGTPEZYRQ"
 func format(i uint64) string {
 	s := fmt.Sprintf("%d", i)
 	d := (len(s) - 1) / 3
-	return strings.TrimSpace(s[:((len(s)-1)%3)+1] + suffixes[d:d+1])
+	digits := s[:((len(s)-1)%3)+1]
+	suffix := suffixes[d : d+1]
+
+	if suffix == " " {
+		return digits
+	}
+
+	decimal := s[((len(s)-1)%3)+2]
+	return digits + "." + string(decimal) + suffix
 }
 
 func formatPercentage(f float64) string {

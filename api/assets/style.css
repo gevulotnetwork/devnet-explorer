@@ -902,7 +902,7 @@ body.dark .tx-id-block-copy svg path {
   }
 }
 
-@media (max-width: 1246px) {
+@media (max-width: 1460px) {
   #stats {
     height: 246px;
   }
@@ -939,7 +939,7 @@ body.dark .tx-id-block-copy svg path {
   }
 }
 
-@media (max-width: 800px) {
+@media (max-width: 940px) {
   #header {
     max-height: 90px;
   }
