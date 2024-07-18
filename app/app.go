@@ -10,6 +10,7 @@ import (
 	"github.com/gevulotnetwork/devnet-explorer/api"
 	"github.com/gevulotnetwork/devnet-explorer/model"
 	"github.com/gevulotnetwork/devnet-explorer/signalhandler"
+	"github.com/gevulotnetwork/devnet-explorer/stats"
 	"github.com/gevulotnetwork/devnet-explorer/store/cache"
 	"github.com/gevulotnetwork/devnet-explorer/store/mock"
 	"github.com/gevulotnetwork/devnet-explorer/store/pg"
@@ -18,14 +19,16 @@ import (
 
 type Store interface {
 	Search(filter string) ([]model.Event, error)
-	Stats(model.StatsRange) (model.Stats, error)
+	Stats(model.StatsRange) (model.CombinedStats, error)
 	Events() <-chan model.Event
 	TxInfo(id string) (model.TxInfo, error)
+	LatestDailyStats() (model.Stats, error)
+	AggregateStats(time.Time) error
 	Runnable
 }
 
 type CachedStore interface {
-	CachedStats(model.StatsRange) model.Stats
+	CachedStats(model.StatsRange) model.CombinedStats
 }
 
 type CombinedStore struct {
@@ -67,8 +70,9 @@ func Run(args ...string) error {
 		return fmt.Errorf("failed to api server: %w", err)
 	}
 
+	agr := stats.NewAggregator(s)
 	sh := signalhandler.New(os.Interrupt)
-	r := NewRunner(s, c, srv, brc, sh)
+	r := NewRunner(s, c, agr, srv, brc, sh)
 	return r.Run()
 }
 
@@ -81,7 +85,6 @@ type Config struct {
 	LogLevel         slog.Level    `envconfig:"LOG_LEVEL" default:"info"`
 }
 
-// TODO: Proper config parsing
 func ParseConfig(args ...string) (Config, error) {
 	var c Config
 	if err := envconfig.Process("", &c); err != nil {

@@ -19,7 +19,7 @@ var assets embed.FS
 
 type Store interface {
 	Search(filter string) ([]model.Event, error)
-	CachedStats(model.StatsRange) model.Stats
+	CachedStats(model.StatsRange) model.CombinedStats
 	Events() <-chan model.Event
 	TxInfo(id string) (model.TxInfo, error)
 }

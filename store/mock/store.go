@@ -23,29 +23,28 @@ type Store struct {
 	events     []model.Event
 	eventQueue [Parallelism]model.Event
 	eventMap   map[string]model.TxInfo
-	stats      model.Stats
+	stats      model.CombinedStats
 	eventsCh   chan model.Event
 	done       chan struct{}
 }
 
 func New() *Store {
 	return &Store{
-		stats:    model.Stats{},
 		eventsCh: make(chan model.Event, 1000),
 		eventMap: make(map[string]model.TxInfo),
 		done:     make(chan struct{}),
 	}
 }
 
-func (s *Store) Stats(model.StatsRange) (model.Stats, error) {
-	s.stats.ProversDeployed += rand.Uint64() % 9000
-	s.stats.ProofsGenerated += rand.Uint64() % 9000
-	s.stats.ProofsVerified += rand.Uint64() % 9000
-	s.stats.RegisteredUsers += rand.Uint64() % 9000
-	s.stats.ProversDeployedDelta = rand.Float64() * 100
-	s.stats.ProofsGeneratedDelta = rand.Float64() * 100
-	s.stats.ProofsVerifiedDelta = rand.Float64() * 100
-	s.stats.RegisteredUsersDelta = rand.Float64() * 100
+func (s *Store) Stats(model.StatsRange) (model.CombinedStats, error) {
+	s.stats.Stats.ProversDeployed += rand.Uint64() % 9000
+	s.stats.Stats.ProofsGenerated += rand.Uint64() % 9000
+	s.stats.Stats.ProofsVerified += rand.Uint64() % 9000
+	s.stats.Stats.RegisteredUsers += rand.Uint64() % 9000
+	s.stats.DeltaStats.ProversDeployed = rand.Float64() * 100
+	s.stats.DeltaStats.ProofsGenerated = rand.Float64() * 100
+	s.stats.DeltaStats.ProofsVerified = rand.Float64() * 100
+	s.stats.DeltaStats.RegisteredUsers = rand.Float64() * 100
 	return s.stats, nil
 }
 
@@ -91,6 +90,14 @@ func (s *Store) TxInfo(id string) (model.TxInfo, error) {
 		return model.TxInfo{}, fmt.Errorf("tx %s not found", id)
 	}
 	return info, nil
+}
+
+func (s *Store) LatestDailyStats() (model.Stats, error) {
+	return model.Stats{}, nil
+}
+
+func (s *Store) AggregateStats(time.Time) error {
+	return nil
 }
 
 func (s *Store) Stop() error {

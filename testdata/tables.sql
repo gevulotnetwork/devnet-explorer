@@ -95,6 +95,20 @@ CREATE TABLE public.deploy (
 ALTER TABLE public.deploy OWNER TO gevulot;
 
 --
+-- Name: daily_stats; Type: TABLE; Schema: public; Owner: gevulot
+--
+
+CREATE TABLE IF NOT EXISTS public.daily_stats (
+	registered_users bigint NOT NULL,
+	proofs_generated bigint NOT NULL,
+	programs bigint NOT NULL,
+	proofs_verified bigint NOT NULL,
+	created_at timestamp with time zone NOT NULL
+);
+
+ALTER TABLE public.daily_stats OWNER TO gevulot;
+
+--
 -- Name: program; Type: TABLE; Schema: public; Owner: gevulot
 --
 
