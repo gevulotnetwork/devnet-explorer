@@ -10,6 +10,7 @@ import (
 	"github.com/gevulotnetwork/devnet-explorer/api"
 	"github.com/gevulotnetwork/devnet-explorer/model"
 	"github.com/gevulotnetwork/devnet-explorer/signalhandler"
+	"github.com/gevulotnetwork/devnet-explorer/stats"
 	"github.com/gevulotnetwork/devnet-explorer/store/cache"
 	"github.com/gevulotnetwork/devnet-explorer/store/mock"
 	"github.com/gevulotnetwork/devnet-explorer/store/pg"
@@ -21,6 +22,8 @@ type Store interface {
 	Stats(model.StatsRange) (model.CombinedStats, error)
 	Events() <-chan model.Event
 	TxInfo(id string) (model.TxInfo, error)
+	LatestDailyStats() (model.Stats, error)
+	AggregateStats(time.Time) error
 	Runnable
 }
 
@@ -67,8 +70,9 @@ func Run(args ...string) error {
 		return fmt.Errorf("failed to api server: %w", err)
 	}
 
+	agr := stats.NewAggregator(s)
 	sh := signalhandler.New(os.Interrupt)
-	r := NewRunner(s, c, srv, brc, sh)
+	r := NewRunner(s, c, agr, srv, brc, sh)
 	return r.Run()
 }
 

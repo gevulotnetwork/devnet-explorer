@@ -92,6 +92,14 @@ func (s *Store) TxInfo(id string) (model.TxInfo, error) {
 	return info, nil
 }
 
+func (s *Store) LatestDailyStats() (model.Stats, error) {
+	return model.Stats{}, nil
+}
+
+func (s *Store) AggregateStats(time.Time) error {
+	return nil
+}
+
 func (s *Store) Stop() error {
 	close(s.done)
 	return nil
