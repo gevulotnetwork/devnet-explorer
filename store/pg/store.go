@@ -185,10 +185,10 @@ func (s *Store) Stats(r model.StatsRange) (model.CombinedStats, error) {
 	return model.CombinedStats{
 		Stats: stats,
 		DeltaStats: model.DeltaStats{
-			ProofsGenerated: (float64(oldStats.ProofsGenerated) / float64(stats.ProofsGenerated-oldStats.ProofsGenerated)) * 100,
-			ProofsVerified:  (float64(oldStats.ProofsVerified) / float64(stats.ProofsVerified-oldStats.ProofsVerified)) * 100,
-			ProversDeployed: (float64(oldStats.ProversDeployed) / float64(stats.ProversDeployed-oldStats.ProversDeployed)) * 100,
-			RegisteredUsers: (float64(oldStats.RegisteredUsers) / float64(stats.RegisteredUsers-oldStats.RegisteredUsers)) * 100,
+			ProofsGenerated: (float64(stats.ProofsGenerated-oldStats.ProofsGenerated) / float64(oldStats.ProofsGenerated)) * 100,
+			ProofsVerified:  (float64(stats.ProofsVerified-oldStats.ProofsVerified) / float64(oldStats.ProofsVerified)) * 100,
+			ProversDeployed: (float64(stats.ProversDeployed-oldStats.ProversDeployed) / float64(oldStats.ProversDeployed)) * 100,
+			RegisteredUsers: (float64(stats.RegisteredUsers-oldStats.RegisteredUsers) / float64(oldStats.RegisteredUsers)) * 100,
 		},
 	}, nil
 }
