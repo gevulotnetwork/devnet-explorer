@@ -31,6 +31,11 @@ func (a *Aggregator) Run() error {
 	if err != nil && !errors.Is(err, model.ErrNotFound) {
 		return fmt.Errorf("failed to get latest aggregated stats: %w", err)
 	}
+
+	if errors.Is(err, model.ErrNotFound) {
+		slog.Info("no old stats found, next run will aggregate first stats")
+	}
+
 	lastRan := s.CreatedAt
 
 	t := time.NewTicker(time.Minute)

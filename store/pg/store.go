@@ -331,7 +331,12 @@ func (s *Store) LatestDailyStats() (model.Stats, error) {
 		LIMIT 1;`
 
 	var stats model.Stats
-	if err := s.db.SelectOne(&stats, statsQuery); err != nil {
+	err := s.db.SelectOne(&stats, statsQuery)
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.Stats{}, model.ErrNotFound
+	}
+
+	if err != nil {
 		return model.Stats{}, err
 	}
 
