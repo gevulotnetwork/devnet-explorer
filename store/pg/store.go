@@ -174,7 +174,8 @@ func (s *Store) Stats(r model.StatsRange) (model.CombinedStats, error) {
 	var oldStats model.Stats
 	err = s.db.SelectOne(&oldStats, oldStatsQuery, r.Since())
 	if errors.Is(err, sql.ErrNoRows) {
-		return model.CombinedStats{}, nil
+		slog.Info("no old stats found, showing only current stats")
+		return model.CombinedStats{Stats: stats}, nil
 	}
 
 	if err != nil {
