@@ -353,7 +353,7 @@ func (s *Store) AggregateStats(t time.Time) error {
 		INSERT INTO
 			daily_stats (created_at, registered_users, proofs_generated, programs, proofs_verified)
 		VALUES
-			(:$1, :$2, :$3, :$4, :$5);`
+			($1, $2, $3, $4, $5);`
 
 	_, err = s.db.Exec(query, t, stats.RegisteredUsers, stats.ProofsGenerated, stats.ProversDeployed, stats.ProofsVerified)
 	if err != nil {
