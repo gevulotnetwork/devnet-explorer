@@ -866,9 +866,9 @@ func copyToClipboard(text string) templ.ComponentScript {
 	}
 }
 
-const suffixes = " kMGTPEZYRQ"
-
 func format(i uint64) string {
+	const suffixes = " kMGTPEZYRQ"
+
 	s := fmt.Sprintf("%d", i)
 	d := (len(s) - 1) / 3
 	digits := s[:((len(s)-1)%3)+1]
@@ -878,14 +878,15 @@ func format(i uint64) string {
 		return digits
 	}
 
-	decimal := s[((len(s)-1)%3)+2]
+	decimal := s[((len(s)-1)%3)+1]
 	return digits + "." + string(decimal) + suffix
 }
 
 func formatPercentage(f float64) string {
 	sign := "+"
 	if f < 0 {
-		sign = "-"
+		// Minus sign is added automatically by fmt.Sprintf
+		sign = ""
 	}
 	return fmt.Sprintf("%s%.2f%s", sign, f, "%")
 }
