@@ -45,7 +45,7 @@ func (a *Aggregator) Run() error {
 		select {
 		case <-t.C:
 			now := time.Now()
-			if now.Day() > lastRan.Day() {
+			if monotonicDay(now) > monotonicDay(lastRan) {
 				slog.Info("aggregating stats", slog.Time("last_ran", lastRan), slog.Time("now", now))
 				if err := a.store.AggregateStats(now); err != nil {
 					slog.Error("failed to aggregate stats", slog.String("error", err.Error()))
@@ -58,6 +58,11 @@ func (a *Aggregator) Run() error {
 			return nil
 		}
 	}
+}
+
+func monotonicDay(t time.Time) int64 {
+	const secsInDay = 24 * 60 * 60
+	return t.Unix() / secsInDay
 }
 
 func (a *Aggregator) Stop() error {
