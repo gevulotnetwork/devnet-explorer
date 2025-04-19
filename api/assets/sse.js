@@ -42,7 +42,7 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
 
 				case "htmx:beforeCleanupElement":
 					var internalData = api.getInternalData(parent)
-					// Try to remove remove an EventSource when elements are removed
+					// Try to remove an EventSource when elements are removed
 					if (internalData.sseEventSource) {
 						internalData.sseEventSource.close();
 					}
